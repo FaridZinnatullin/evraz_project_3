@@ -1,0 +1,9 @@
+/venv/
+.idea
+.env
+
+!/components/postgres_books/dist
+!/components/postgres_users/dist
+
+!/components/postgres_books/init.sql
+!/components/postgres_users/init.sql

@@ -1,0 +1,95 @@
+version: "3.7"
+
+services:
+  postgresdb_users:
+    build:
+      context: ./postgres_users
+      dockerfile: Dockerfile
+    environment:
+      - POSTGRES_PASSWORD=test_password
+    volumes:
+      - ./postgres_users/init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "5432:5432"
+
+  postgresdb_books:
+    build:
+      context: ./postgres_books
+      dockerfile: Dockerfile
+    environment:
+      - POSTGRES_PASSWORD=test_password
+    volumes:
+      - ./postgres_books/init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - "5433:5432"
+
+
+  rabbitmq:
+    image: "rabbitmq:3-management"
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    environment:
+      - RABBITMQ_DEFAULT_USER=user
+      - RABBITMQ_DEFAULT_PASS=password
+
+  users_service:
+    build:
+      context: ./users_service
+      dockerfile: Dockerfile
+    ports:
+      - "1234:1234"
+    environment:
+      - POSTGRES_USERS_HOST=postgresdb_users
+      - POSTGRES_USERS_PORT=5432
+      - POSTGRES_USERS_USER=barash
+      - POSTGRES_USERS_PASSWORD=test_password
+      - POSTGRES_USERS_DBNAME=evraz_project_3_users_service
+      - RABBITMQ_USER=user
+      - RABBITMQ_PASSWORD=password
+      - RABBITMQ_HOST=rabbitmq
+      - RABBITMQ_PORT=5672
+      - SECRET_JWT_KEY=SECRET_JWT_KEY
+    entrypoint:
+      - ./entrypoint.sh
+    depends_on:
+      - postgresdb_users
+      - rabbitmq
+    restart: unless-stopped
+
+
+  books_service:
+    build:
+      context: ./books_service
+      dockerfile: Dockerfile
+    ports:
+      - "5555:1234"
+    environment:
+      - POSTGRES_BOOKS_HOST=postgresdb_books
+      - POSTGRES_BOOKS_PORT=5432
+      - POSTGRES_BOOKS_USER=barash
+      - POSTGRES_BOOKS_PASSWORD=test_password
+      - POSTGRES_BOOKS_DBNAME=evraz_project_3_books_service
+      - RABBITMQ_USER=user
+      - RABBITMQ_PASSWORD=password
+      - RABBITMQ_HOST=rabbitmq
+      - RABBITMQ_PORT=5672
+      - SECRET_JWT_KEY=SECRET_JWT_KEY
+    entrypoint:
+      - ./entrypoint.sh
+    depends_on:
+      - postgresdb_books
+      - rabbitmq
+    restart: unless-stopped
+
+  nginx:
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      - users_service
+
+
