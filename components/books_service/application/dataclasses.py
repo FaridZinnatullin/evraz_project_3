@@ -6,8 +6,12 @@ import attr
 @attr.dataclass
 class Book:
     id: Optional[int] = None
-    name: Optional[str] = None
-    author: Optional[str] = None
-    available: Optional[bool] = None
-
-
+    title: Optional[str] = None
+    subtitle: Optional[str] = None
+    price: Optional[str] = None
+    rating: Optional[int] = None
+    authors: Optional[str] = None
+    publisher: Optional[str] = None
+    year: Optional[int] = None
+    pages: Optional[int] = None
+    desc: Optional[str] = None

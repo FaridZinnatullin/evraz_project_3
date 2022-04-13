@@ -7,3 +7,7 @@
 
 !/components/postgres_books/init.sql
 !/components/postgres_users/init.sql
+!/components/books_service/dist/
+!/components/users_service/dist/
+/components/books_service/dist/
+/components/users_service/dist/

@@ -30,3 +30,6 @@ class BookRepo(ABC):
     def get_by_name_author(self, author: str, name: str):
         pass
 
+    @abstractmethod
+    def add_instance_package(self, instances_package: list):
+        pass

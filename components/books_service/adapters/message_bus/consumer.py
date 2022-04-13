@@ -7,12 +7,12 @@ from application import services
 from .scheme import broker_scheme
 
 
-def create_consumer(connection: Connection, books: services.BooksManager) -> KombuConsumer:
+def create_consumer(connection: Connection, books: services.BooksUpdaterManager) -> KombuConsumer:
 
     consumer = KombuConsumer(connection=connection, scheme=broker_scheme)
 
     consumer.register_function(
-        books.get_from_rabbit,
+        books.get_tag_from_rabbit,
         'BookTagsQueue',
     )
 

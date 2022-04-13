@@ -19,7 +19,6 @@ class Books:
     books_manager: services.BooksManager
 
     @join_point
-    @authenticate
     def on_get_book_info(self, request, response):
         book = self.books_manager.get_book_by_id(**request.params)
         result = {
@@ -31,37 +30,17 @@ class Books:
         response.media = result
 
     @join_point
-    @authenticate
-    def on_get_books(self, request, response, **kwargs):
-        book = self.books_manager.get_book_by_id(**request.params)
-        result = {
+    def on_get_all_books(self, request, response):
+        books = self.books_manager.get_all_books(**request.params)
+        result = [{
             'book_id': book.id,
-            'book_name': book.name,
-            'book_author': book.author,
-            'book_available': book.available
-        }
+            'book_title': book.title,
+            'book_authors': book.authors,
+            'book_rating': book.rating
+        } for book in books]
         response.media = result
 
-    @join_point
-    @authenticate
-    def on_post_take_book(self, request, response):
-        self.books_manager.get_book(**request.media)
-
-    @join_point
-    @authenticate
-    def on_post_return_book(self, request, response):
-        self.books_manager.return_book(**request.media)
 
 
-    @join_point
-    @authenticate
-    def on_post_create(self, request, response):
-        self.books_manager.create(**request.media)
-
-
-    @join_point
-    @authenticate
-    def on_post_delete(self, request, response):
-        self.books_manager.delete_book(**request.media)
 
 

@@ -41,13 +41,13 @@ class Application:
     )
 
 
-class MessageBusConsumer:
-    connection = Connection(Settings.message_bus.BROKER_URL)
-    consumer = message_bus.create_consumer(connection, Application.books_manager)
-
-    @staticmethod
-    def declare_scheme():
-        message_bus.broker_scheme.declare(MessageBusConsumer.connection)
+# class MessageBusConsumer:
+#     connection = Connection(Settings.message_bus.BROKER_URL)
+#     consumer = message_bus.create_consumer(connection, Application.books_manager)
+#
+#     @staticmethod
+#     def declare_scheme():
+#         message_bus.broker_scheme.declare(MessageBusConsumer.connection)
 
 
 class Aspects:
@@ -60,9 +60,9 @@ app = books_api.create_app(
 )
 
 
-MessageBusConsumer.declare_scheme()
-consumer = Thread(target=MessageBusConsumer.consumer.run, daemon=True)
-consumer.start()
+# MessageBusConsumer.declare_scheme()
+# consumer = Thread(target=MessageBusConsumer.consumer.run, daemon=True)
+# consumer.start()
 
 # if __name__ == '__main__':
 #     from wsgiref import simple_server

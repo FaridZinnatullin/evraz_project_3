@@ -1,11 +1,10 @@
 import requests
-from evraz.classic.app import DTO, validate_with_dto
+from evraz.classic.app import DTO
 from evraz.classic.aspects import PointCut
 from evraz.classic.components import component
 from evraz.classic.messaging import Message, Publisher
-from pydantic import validate_arguments
 
-from . import errors, interfaces
+from . import interfaces, errors
 from .dataclasses import Book
 
 # разобрать что это и зачем
@@ -18,155 +17,105 @@ class BookInfo(DTO):
     author: str
     available: bool
 
+
 @component
-class BooksReadManager:
+class BooksUpdaterManager:
     books_repo: interfaces.BookRepo
+    publisher: Publisher
+    SERVICE_SEARCH_URL = 'https://api.itbook.store/1.0/search/'
+    SERVICE_BOOK_URL = 'https://api.itbook.store/1.0/books/'
+
+    @join_point
+    def create_and_get(self, book_id):
+        response = requests.get(f'{self.SERVICE_BOOK_URL}{book_id}')
+        response = response.json()
+        book = Book(
+            id=int(response.get('isbn13')),
+            title=response.get('title'),
+            subtitle=response.get('subtitle'),
+            price=response.get('price'),
+            rating=int(response.get('rating')),
+            authors=response.get('authors'),
+            publisher=response.get('publisher'),
+            year=int(response.get('year')),
+            pages=int(response.get('pages')),
+            desc=response.get('desc'),
+        )
+        return book
+
+    @join_point
+    def add_books_package(self, books_package):
+        self.books_repo.add_instance_package(books_package)
 
 
+    @join_point
+    def get_tag_from_rabbit(self, book_tag):
+
+        print(f'Получен тэг {book_tag}')
+        total_books = {}
+        # Отправка первого запроса для получения количества книг:
+        response = requests.get(f'{self.SERVICE_SEARCH_URL}{book_tag}')
+        response = response.json()
+        books_count = int(response.get('total'))
+        pages_count = books_count // 10 + int((books_count % 10) > 0)
+        if pages_count > 5:
+            pages_count = 5
+
+        print(f'Количество страниц для {book_tag}: {pages_count}')
+
+        # Постраничный проход
+        for page_num in range(pages_count):
+            response = requests.get(f'{self.SERVICE_SEARCH_URL}{book_tag}/{page_num}')
+            response = response.json()
+            total_books[book_tag] = []
+
+            # Для каждой книги создаем dataclass
+            for book in response.get('books'):
+                book_info = self.create_and_get(book.get('isbn13'))
+                total_books[book_tag].append(book_info)
+
+        for key, value in total_books.items():
+            self.add_books_package(value)
 
 
 @component
 class BooksManager:
     books_repo: interfaces.BookRepo
     publisher: Publisher
+    SERVICE_SEARCH_URL = 'https://api.itbook.store/1.0/search/'
 
     @join_point
-    @validate_with_dto
-    def create(self, book_data: BookInfo):
-
-        book = Book(name=book_data.name,
-                    author=book_data.author,
-                    available=book_data.available)
-
-        if not self.books_repo.get_by_name_author(author=book_data.author, name=book_data.name):
-            book = self.books_repo.add_instance(book)
-
-            self.publisher.plan(
-                Message('LogsExchange', {'action': 'create',
-                                         'object_type': 'book',
-                                         'object_id': book.id
-                                         })
-            )
-        else:
-            raise errors.BookAlreadyExist
-
-    @join_point
-    @validate_arguments
-    def get_book_by_id(self, book_id: int) -> Book:
-        book = self.books_repo.get_by_id(book_id)
-        if not book:
-            raise errors.UncorrectedParams()
-        return book
-
-    @join_point
-    @validate_arguments
-    def get_all_books(self):
-        return self.books_repo.get_all()
-
-    @join_point
-    @validate_arguments
-    def delete_book(self, book_id: int):
-        book = self.get_book_by_id(book_id)
-        if book:
-            self.books_repo.delete_by_id(book_id)
-        else:
-            raise errors.UncorrectedParams()
-
-        self.publisher.plan(
-            Message('LogsExchange', {'action': 'delete',
-                                     'object_type': 'book',
-                                     'object_id': book.id
-                                     })
+    def add_book(self, book_id: str):
+        print(book_id)
+        response = requests.get(f'https://api.itbook.store/1.0/books/{int(book_id)}')
+        response = response.json()
+        book = Book(
+            id=int(response['isbn13']),
+            title=response['title'],
+            subtitle=response['subtitle'],
+            price=response['price'],
+            rating=int(response['rating']),
+            authors=response['authors'],
+            publisher=response['publisher'],
+            year=int(response['year']),
+            pages=int(response['pages']),
+            desc=response['desc'],
         )
+        book_add = self.book_repo.add_book(book)
+        return book_add
 
     @join_point
-    @validate_arguments
-    def get_book(self, book_id: int, user_id: int):
-        book = self.get_book_by_id(book_id)
-        if book:
-            if book.available:
-                book.available = False
-                self.books_repo.add_instance(book)
-                self.publisher.plan(
-                    Message('LogsExchange', {'action': 'get book',
-                                             'object_type': 'book',
-                                             'object_id': book_id
-                                             }),
-
-                    Message('LogsExchange', {'action': 'user get book',
-                                             'object_type': 'user',
-                                             'object_id': user_id
-                                             })
-                )
-            else:
-                raise errors.BookIsUnavailable
-        else:
-            raise errors.UncorrectedParams
-
-    @join_point
-    @validate_arguments
-    def return_book(self, book_id: int, user_id: int):
-        book = self.get_book_by_id(book_id)
-        if book:
-            book.available = True
-            self.books_repo.add_instance(book)
-            self.publisher.plan(
-                Message('LogsExchange', {'action': 'return book',
-                                         'object_type': 'book',
-                                         'object_id': book_id
-                                         }),
-
-                Message('LogsExchange', {'action': 'user return book',
-                                         'object_type': 'user',
-                                         'object_id': user_id
-                                         })
-            )
-
-    # @join_point
-    # def send_book_to_rabbit(self, book_id: int, book_tag: str):
-    #
-
-    @join_point
-    def get_books_from_tag(self, book_tag: str, pages_total: int):
-        SERVICE_SEARCH_URL = 'https://api.itbook.store/1.0/search/'
-
-        for page_num in range(pages_total):
-            response = requests.get(f'{SERVICE_SEARCH_URL}{book_tag}/{page_num}')
-            response = response.json()
-            for book in response.get('books'):
-                pass
-
-    @join_point
-    def get_from_rabbit(self, book_tag):
-        print(f'Получен тэг {book_tag}')
+    def get_all_books(self):
+        books = self.books_repo.get_all()
+        if not books:
+            raise errors.UncorrectedParams()
+        return books
 
 
     @join_point
     def get_book_from_service(self, tags):
-        self.publisher.publish(
-            Message('BookTagsExchange', {'book_tag': 12344}),
-        )
         for tag in tags:
             self.publisher.publish(
                 Message('BookTagsExchange', {'book_tag': tag}),
             )
             print(f'Отправка {tag} в кролик')
-            # response = requests.get(f'{SERVICE_SEARCH_URL}{tag}')
-            # response = response.json()
-            # total = int(response.get('total'))
-            # requests_for_book = total // 10 + int((total % 10) > 0)
-            # print(requests_for_book)
-            # self.publisher.plan(
-            #
-            #         )
-            # self.get_books_from_tag(tag, requests_for_book)
-
-            # for book in response.get('books'):
-            #     self.send_book_to_rabbit(book_id=book.get('idbn13'),
-            #                              book_tag=tag)
-            #
-            # print(response)
-            # print(f'Количество страниц: {requests_for_book}')
-
-    # @join_point
-    # def get_books_from_tag(self, tags):

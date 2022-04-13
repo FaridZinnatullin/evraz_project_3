@@ -19,17 +19,25 @@ class BookRepo(BaseRepository, interfaces.BookRepo):
         books = self.session.execute(query).scalars().all()
         return books
 
-    def add_instance(self, book: Book):
-        self.session.add(book)
+    def add_instance(self, instance: Book):
+        self.session.add(instance)
         self.session.flush()
-        return book
+        return instance
+
+    def add_instance_package(self, instances_package: list):
+        self.session.add_all(instances_package)
+        self.session.flush()
+        print('Добавили пакет')
+
 
     def delete_by_id(self, book_id: int):
         book = self.get_by_id(book_id)
         self.session.delete(book)
 
+
     def update_by_id(self, book: Book):
         pass
+
 
     def get_by_name_author(self, author: str, name: str):
         query = select(Book).where(and_(Book.name == name, Book.author == author))
