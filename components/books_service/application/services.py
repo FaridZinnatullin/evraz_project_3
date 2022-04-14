@@ -1,33 +1,117 @@
-from typing import List, Union
+import datetime
+from typing import List
+from typing import Optional
+
 import requests
-from evraz.classic.app import DTO
 from evraz.classic.aspects import PointCut
 from evraz.classic.components import component
 from evraz.classic.messaging import Message, Publisher
 
 from . import interfaces, errors
-from .dataclasses import Book
+from .dataclasses import Book, Booking
 
 # разобрать что это и зачем
 join_points = PointCut()
 join_point = join_points.join_point
 
 
-class BookInfo(DTO):
-    name: str
-    author: str
-    available: bool
+@component
+class BookingManager:
+    booking_repo: interfaces.BookingRepo
+    books_repo: interfaces.BookRepo
+    publisher: Publisher
+
+    @join_point
+    def get_by_id(self, booking_id):
+        booking = self.booking_repo.get_by_id(booking_id)
+        if not booking:
+            raise errors.UncorrectedParams
+
+        return booking
+
+    @join_point
+    def get_by_book_id(self, book_id):
+        booking = self.booking_repo.get_by_book_id(book_id=book_id)
+        # if not booking:
+        #     raise errors.UncorrectedParams
+        return booking
+
+
+    @join_point
+    def check_book_available(self, book_id):
+        # Проверяем существование книги
+        if not self.books_repo.get_by_id(book_id):
+            raise errors.UncorrectedParams
+
+        # Проверяем, не забронирована ли она
+        booking = self.get_by_book_id(book_id)
+
+        # Если никаких заявок на книгу не было
+        if booking is None:
+            return True
+
+        # Если брони есть, то смотрим, не вышел ли срок
+        if booking.expiry_datetime > datetime.datetime.now():
+            raise errors.BookIsUnavailable
+
+        return True
+
+    @join_point
+    def check_permission(self, booking_id: int, user_id: int):
+        booking = self.get_by_id(booking_id)
+        if booking.user_id == user_id:
+            return True
+
+    @join_point
+    def booking_book(self, book_id: int, user_id: int, period: Optional[int] = 7):
+        if self.check_book_available(book_id=book_id):
+            booking = Booking(
+                book_id=book_id,
+                user_id=user_id,
+                created_datetime=datetime.datetime.now(),
+                expiry_datetime=datetime.datetime.now() + datetime.timedelta(days=period)
+            )
+            self.booking_repo.add_instance(booking)
+
+    @join_point
+    def delete_booking(self, booking_id: int, user_id: int):
+        if self.check_permission(booking_id=booking_id, user_id=user_id):
+            booking = self.get_by_id(booking_id)
+            if booking is None:
+                raise errors.UncorrectedParams
+
+            if booking.expiry_datetime < datetime.datetime.now():
+                raise errors.BookingIsUnavailable
+
+            booking.expiry_datetime = datetime.date(1800, 10, 10)
+            self.booking_repo.add_instance(booking)
+
+    @join_point
+    def redeem_booking(self, booking_id: int, user_id: int):
+        if self.check_permission(booking_id=booking_id, user_id=user_id):
+            booking = self.get_by_id(booking_id)
+
+            if booking.expiry_datetime < datetime.datetime.now():
+                raise errors.BookingIsUnavailable
+
+            booking.expiry_datetime = datetime.date(2800, 10, 10)
+            self.booking_repo.add_instance(booking)
+
+    @join_point
+    def get_all_users_booking(self, user_id: int):
+        return self.booking_repo.get_users_booking(user_id=user_id)
 
 
 @component
 class BooksUpdaterManager:
     books_repo: interfaces.BookRepo
     publisher: Publisher
+
     SERVICE_SEARCH_URL = 'https://api.itbook.store/1.0/search/'
     SERVICE_BOOK_URL = 'https://api.itbook.store/1.0/books/'
 
     @join_point
-    def create_and_get(self, book_id):
+    def create_and_get(self, book_id: str, service_tag: str, batch_datetime: str):
         response = requests.get(f'{self.SERVICE_BOOK_URL}{book_id}')
         response = response.json()
         book = Book(
@@ -41,6 +125,8 @@ class BooksUpdaterManager:
             year=int(response.get('year')),
             pages=int(response.get('pages')),
             desc=response.get('desc'),
+            service_tag=service_tag,
+            batch_datetime=batch_datetime
         )
         return book
 
@@ -48,54 +134,69 @@ class BooksUpdaterManager:
     def add_books_package(self, books_package):
         self.books_repo.add_instance_package(books_package)
 
+    @join_point
+    def send_top_books(self, tags: list, batch_datetime: str):
+        top_books = {}
+        for tag in tags:
+            top_books[tag] = self.books_repo.get_top_by_tag(tag=tag, batch_datetime=batch_datetime)
+            top_books[tag] = [{'title': book.title,
+                               'authors': book.authors,
+                               'rating': book.rating,
+                               'year': book.year,
+                               'price': book.price
+                               }
+                              for book in top_books[tag]]
+
+        print(top_books)
+        self.publisher.publish(
+            Message('BookSenderExchange', {'top_books': top_books}),
+        )
 
     @join_point
-    def get_tag_from_rabbit(self, book_tag):
-        # top_3_books = {}
-        # TODO: не забыть убрать
-        # book_tag = 'mongodb'
-        print(f'Получен тэг {book_tag}')
+    def get_tag_from_rabbit(self, book_tags: list, batch_datetime: str):
         total_books = {}
         # Отправка первого запроса для получения количества книг:
-        response = requests.get(f'{self.SERVICE_SEARCH_URL}{book_tag}')
-        response = response.json()
-        books_count = int(response.get('total'))
-        pages_count = books_count // 10 + int((books_count % 10) > 0)
-        if pages_count > 5:
-            pages_count = 5
-
-        print(f'Количество страниц для {book_tag}: {pages_count}')
-
-        # Постраничный проход
-        for page_num in range(pages_count):
-            response = requests.get(f'{self.SERVICE_SEARCH_URL}{book_tag}/{page_num}')
+        for book_tag in book_tags:
+            response = requests.get(f'{self.SERVICE_SEARCH_URL}{book_tag}')
             response = response.json()
-            total_books[book_tag] = []
+            books_count = int(response.get('total'))
+            pages_count = books_count // 10 + int((books_count % 10) > 0)
+            if pages_count > 5:
+                pages_count = 5
 
-            # Для каждой книги создаем dataclass
-            for book in response.get('books'):
-                book_info = self.create_and_get(book.get('isbn13'))
-                total_books[book_tag].append(book_info)
+            print(f'Количество страниц для {book_tag}: {pages_count}')
+
+            # Постраничный проход
+            for page_num in range(pages_count):
+                response = requests.get(f'{self.SERVICE_SEARCH_URL}{book_tag}/{page_num}')
+                response = response.json()
+                total_books[book_tag] = []
+
+                # Для каждой книги создаем dataclass
+                for book in response.get('books'):
+                    book_info = self.create_and_get(book.get('isbn13'), service_tag=book_tag,
+                                                    batch_datetime=batch_datetime)
+                    total_books[book_tag].append(book_info)
 
         for key, value in total_books.items():
             self.add_books_package(value)
-            #Отпрвавка топ 3 книг по теме
-            sorted_books = sorted(value, key=lambda x: (-int(x['rating']), x['year']))
-            # top_3_books[key] = sorted_books[:3]
 
-            self.publisher.publish(
-                Message('BookSenderExchange', {key: sorted_books[:3]}),
-            )
-
-            print(f'Отправка топ книг по {key} в кролик')
-
+        self.send_top_books(book_tags, batch_datetime)
 
 
 @component
 class BooksManager:
     books_repo: interfaces.BookRepo
     publisher: Publisher
+
     SERVICE_SEARCH_URL = 'https://api.itbook.store/1.0/search/'
+
+    @join_point
+    def get_book_by_id(self, book_id: int) -> Book:
+        book = self.books_repo.get_by_id(book_id)
+        if not book:
+            raise errors.UncorrectedParams()
+        return book
 
     @join_point
     def filter_books(self, filters: dict):
@@ -124,7 +225,6 @@ class BooksManager:
 
         return self.books_repo.get_books(dict(zip(types, filters_params)), filter_order)
 
-
     @join_point
     def get_all_books(self):
         books = self.books_repo.get_all()
@@ -132,11 +232,12 @@ class BooksManager:
             raise errors.UncorrectedParams()
         return books
 
-
     @join_point
     def get_book_from_service(self, tags):
-        for tag in tags:
-            self.publisher.publish(
-                Message('BookTagsExchange', {'book_tag': tag}),
-            )
-            print(f'Отправка {tag} в кролик')
+        # Фиксируем время "партии"
+        batch_datetime = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+
+        self.publisher.publish(
+            Message('BookTagsExchange', {'book_tags': tags,
+                                         'batch_datetime': batch_datetime}),
+        )

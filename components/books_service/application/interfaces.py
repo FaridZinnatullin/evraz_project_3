@@ -61,3 +61,37 @@ class BookRepo(ABC):
     @abstractmethod
     def get_filter_by_publisher(self, publisher: Union[str, List], query):
         pass
+
+    @abstractmethod
+    def get_top_by_tag(self, tag: str, batch_datetime: str):
+        pass
+
+
+class BookingRepo(ABC):
+
+    @abstractmethod
+    def get_by_id(self, booking_id: int):
+        pass
+
+    @abstractmethod
+    def get_by_book_id(self, book_id: int):
+        pass
+
+    @abstractmethod
+    def check_book_available(self, book_id: int):
+        pass
+
+    @abstractmethod
+    def get_all(self):
+        pass
+
+    @abstractmethod
+    def add_instance(self, booking_data):
+        pass
+
+
+    @abstractmethod
+    def get_users_booking(self, user_id):
+        pass
+
+

@@ -1,5 +1,6 @@
-from typing import List, Optional
 import datetime
+from typing import Optional
+
 import attr
 
 
@@ -15,3 +16,14 @@ class Book:
     year: Optional[int] = None
     pages: Optional[int] = None
     desc: Optional[str] = None
+    service_tag: Optional[str] = None
+    batch_datetime: Optional[str] = None
+
+
+@attr.dataclass
+class Booking:
+    user_id: int
+    book_id: int
+    created_datetime: Optional[datetime.datetime] = None
+    expiry_datetime: Optional[datetime.datetime] = None
+    id: Optional[int] = None

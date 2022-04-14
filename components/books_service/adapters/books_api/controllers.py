@@ -18,6 +18,7 @@ from .join_points import join_point
 class Books:
     books_manager: services.BooksManager
     books_updater: services.BooksUpdaterManager
+    booking_manager: services.BookingManager
 
     @join_point
     def on_post_test_data(self, request, response):
@@ -28,9 +29,9 @@ class Books:
         book = self.books_manager.get_book_by_id(**request.params)
         result = {
             'book_id': book.id,
-            'book_name': book.name,
-            'book_author': book.author,
-            'book_available': book.available
+            'book_title': book.title,
+            'book_authors': book.authors,
+            'book_price': book.price
         }
         response.media = result
 
@@ -62,6 +63,48 @@ class Books:
             } for book in books
         ]
 
+    @join_point
+    @authenticate
+    def on_post_create_booking(self, request, response):
+        request.media['user_id'] = request.context.client.user_id
+        self.booking_manager.booking_book(**request.media)
+
+
+    @join_point
+    @authenticate
+    def on_get_booking_info(self, request, response):
+        request.params['user_id'] = request.context.client.user_id
+        booking = self.booking_manager.get_by_id(**request.params)
+        response.media = {
+            'booking_id': booking.id,
+            'book_id': booking.book_id,
+            'created_at': booking.created_datetime,
+            'expiry_datetime': booking.expiry_datetime
+        }
+
+    @join_point
+    @authenticate
+    def on_get_show_all_booking(self, request, response):
+        request.params['user_id'] = request.context.client.user_id
+        bookings = self.booking_manager.get_all_users_booking(**request.params)
+        response.media = [{
+            'booking_id': booking.id,
+            'book_id': booking.book_id,
+            'created_at': booking.created_datetime.strftime('%Y-%m-%d %H:%M:%S'),
+            'expiry_datetime': booking.expiry_datetime.strftime('%Y-%m-%d %H:%M:%S')
+        } for booking in bookings]
+
+    @join_point
+    @authenticate
+    def on_post_delete_booking(self, request, response):
+        request.media['user_id'] = request.context.client.user_id
+        self.booking_manager.delete_booking(**request.media)
+
+    @join_point
+    @authenticate
+    def on_post_redeem_booking(self, request, response):
+        request.media['user_id'] = request.context.client.user_id
+        self.booking_manager.redeem_booking(**request.media)
 
 
 

@@ -1,17 +1,13 @@
 from sqlalchemy import (
     Column,
     Float,
-    ForeignKey,
     Integer,
     MetaData,
     String,
     Table,
-    Boolean,
-    DateTime,
     BigInteger,
-    Text
+    DateTime
 )
-import datetime
 
 naming_convention = {
     'ix': 'ix_%(column_0_label)s',
@@ -48,5 +44,16 @@ books = Table(
     Column('year', Integer),
     Column('pages', Integer),
     Column('desc', String(10000)),
+    Column('service_tag', String(64)),
+    Column('batch_datetime', String(64))
+)
 
+booking = Table(
+    'Booking',
+    metadata,
+    Column('id', BigInteger, primary_key=True),
+    Column('user_id', Integer, nullable=False),
+    Column('book_id', BigInteger, nullable=False),
+    Column('created_datetime', DateTime, default=None),
+    Column('expiry_datetime', DateTime, default=None),
 )

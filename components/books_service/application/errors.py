@@ -25,12 +25,17 @@ class UncorrectedLoginPassword(AppError):
     msg_template = "Incorrect bookname or password"
     code = 'books.authorization'
 
+
 class BookIsUnavailable(AppError):
     msg_template = "Sorry, but book is unavailable"
     code = 'books.unavailable'
+
 
 class BookAlreadyExist(AppError):
     msg_template = "Book already exist"
     code = 'book.already exist'
 
 
+class BookingIsUnavailable(AppError):
+    msg_template = "The booking time has expired or the booking has been deleted"
+    code = 'booking.unavailable'

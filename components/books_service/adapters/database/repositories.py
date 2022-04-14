@@ -1,11 +1,43 @@
+import datetime
 from typing import List, Union
 
 from evraz.classic.components import component
 from evraz.classic.sql_storage import BaseRepository
+from sqlalchemy import asc, desc
 from sqlalchemy.sql import select, and_
 
 from application import interfaces
-from application.dataclasses import Book
+from application.dataclasses import Book, Booking
+
+
+@component
+class BookingRepo(BaseRepository, interfaces.BookingRepo):
+
+    def get_by_id(self, booking_id: int):
+        query = select(Booking).where(Booking.id == booking_id)
+        return self.session.execute(query).scalars().one_or_none()
+
+    def get_by_book_id(self, book_id: int):
+        query = select(Booking).where(Booking.book_id == book_id).order_by(desc(Booking.id)).limit(1)
+        return self.session.execute(query).scalars().one_or_none()
+
+    def check_book_available(self, book_id: int):
+        if self.get_by_book_id(book_id).expiry_datetime > datetime.datetime.now():
+            return True
+
+    def add_instance(self, instance: Booking):
+        self.session.add(instance)
+        self.session.flush()
+        return instance
+
+    def get_all(self):
+        query = select(Booking)
+        return self.session.execute(query).scalars().all()
+
+    def get_users_booking(self, user_id):
+        query = select(Booking).where(Booking.user_id == user_id)
+        return self.session.execute(query).scalars().all()
+
 
 
 @component
@@ -55,7 +87,6 @@ class BookRepo(BaseRepository, interfaces.BookRepo):
             return query.order_by(Book.price)
         if order == 'pages':
             return query.order_by(Book.pages)
-
 
     def get_filter(self, params: dict, query):
         if 'title' in params:
@@ -110,3 +141,9 @@ class BookRepo(BaseRepository, interfaces.BookRepo):
             publisher = ','.join(publisher)
         publisher = publisher.replace('_', ' ')
         return query.filter(Book.publisher.like(f'%{publisher}%'))
+
+    def get_top_by_tag(self, tag: str, batch_datetime: str):
+        query = select(Book).where(and_(Book.service_tag == tag, Book.batch_datetime == batch_datetime)).order_by(
+            desc(Book.rating), asc(Book.year)).limit(3)
+        books = self.session.execute(query).scalars().all()
+        return books

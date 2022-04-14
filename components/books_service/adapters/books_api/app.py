@@ -7,10 +7,15 @@ from application import services
 from . import auth, controllers
 
 
-def create_app(books_manager: services.BooksManager, books_updater: services.BooksUpdaterManager) -> App:
+def create_app(books_manager: services.BooksManager,
+               books_updater: services.BooksUpdaterManager,
+               booking_manager: services.BookingManager) -> App:
 
     authenticator = Authenticator(app_groups=auth.ALL_GROUPS)
     authenticator.set_strategies(auth.jwt_strategy)
     app = App(prefix='/api')
-    app.register(controllers.Books(authenticator=authenticator, books_manager=books_manager, books_updater=books_updater))
+    app.register(controllers.Books(authenticator=authenticator,
+                                   books_manager=books_manager,
+                                   books_updater=books_updater,
+                                   booking_manager=booking_manager))
     return app

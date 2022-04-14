@@ -22,6 +22,7 @@ class DB:
     context = TransactionContext(bind=engine)
 
     books_repo = database.repositories.BookRepo(context=context)
+    booking_repo = database.repositories.BookingRepo(context=context)
 
 
 class MessageBus:
@@ -39,19 +40,18 @@ class Application:
         books_repo=DB.books_repo,
         publisher=MessageBus.publisher,
     )
+
     books_updater = services.BooksUpdaterManager(
         books_repo=DB.books_repo,
         publisher=MessageBus.publisher,
     )
 
+    booking_manager = services.BookingManager(
+        books_repo=DB.books_repo,
+        booking_repo=DB.booking_repo,
+        publisher=MessageBus.publisher,
+    )
 
-# class MessageBusConsumer:
-#     connection = Connection(Settings.message_bus.BROKER_URL)
-#     consumer = message_bus.create_consumer(connection, Application.books_manager)
-#
-#     @staticmethod
-#     def declare_scheme():
-#         message_bus.broker_scheme.declare(MessageBusConsumer.connection)
 
 
 class Aspects:
@@ -62,15 +62,6 @@ class Aspects:
 app = books_api.create_app(
     books_manager=Application.books_manager,
     books_updater=Application.books_updater,
+    booking_manager=Application.booking_manager
 )
 
-
-# MessageBusConsumer.declare_scheme()
-# consumer = Thread(target=MessageBusConsumer.consumer.run, daemon=True)
-# consumer.start()
-
-# if __name__ == '__main__':
-#     from wsgiref import simple_server
-#
-#     with simple_server.make_server('', 8000, app=app) as server:
-#         server.serve_forever()
