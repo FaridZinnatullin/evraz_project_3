@@ -8,7 +8,7 @@ class Book:
     id: Optional[int] = None
     title: Optional[str] = None
     subtitle: Optional[str] = None
-    price: Optional[str] = None
+    price: Optional[float] = None
     rating: Optional[int] = None
     authors: Optional[str] = None
     publisher: Optional[str] = None

@@ -41,7 +41,7 @@ books = Table(
     Column('id', BigInteger, primary_key=True),
     Column('title', String(1000)),
     Column('subtitle', String(1000)),
-    Column('price', String(100)),
+    Column('price', Float),
     Column('rating', Integer),
     Column('authors', String(500)),
     Column('publisher', String(500)),

@@ -1,3 +1,4 @@
+from typing import List, Union
 import requests
 from evraz.classic.app import DTO
 from evraz.classic.aspects import PointCut
@@ -33,7 +34,7 @@ class BooksUpdaterManager:
             id=int(response.get('isbn13')),
             title=response.get('title'),
             subtitle=response.get('subtitle'),
-            price=response.get('price'),
+            price=float(response.get('price')[1:]),
             rating=int(response.get('rating')),
             authors=response.get('authors'),
             publisher=response.get('publisher'),
@@ -50,7 +51,9 @@ class BooksUpdaterManager:
 
     @join_point
     def get_tag_from_rabbit(self, book_tag):
-
+        # top_3_books = {}
+        # TODO: не забыть убрать
+        # book_tag = 'mongodb'
         print(f'Получен тэг {book_tag}')
         total_books = {}
         # Отправка первого запроса для получения количества книг:
@@ -76,6 +79,16 @@ class BooksUpdaterManager:
 
         for key, value in total_books.items():
             self.add_books_package(value)
+            #Отпрвавка топ 3 книг по теме
+            sorted_books = sorted(value, key=lambda x: (-int(x['rating']), x['year']))
+            # top_3_books[key] = sorted_books[:3]
+
+            self.publisher.publish(
+                Message('BookSenderExchange', {key: sorted_books[:3]}),
+            )
+
+            print(f'Отправка топ книг по {key} в кролик')
+
 
 
 @component
@@ -85,24 +98,32 @@ class BooksManager:
     SERVICE_SEARCH_URL = 'https://api.itbook.store/1.0/search/'
 
     @join_point
-    def add_book(self, book_id: str):
-        print(book_id)
-        response = requests.get(f'https://api.itbook.store/1.0/books/{int(book_id)}')
-        response = response.json()
-        book = Book(
-            id=int(response['isbn13']),
-            title=response['title'],
-            subtitle=response['subtitle'],
-            price=response['price'],
-            rating=int(response['rating']),
-            authors=response['authors'],
-            publisher=response['publisher'],
-            year=int(response['year']),
-            pages=int(response['pages']),
-            desc=response['desc'],
-        )
-        book_add = self.book_repo.add_book(book)
-        return book_add
+    def filter_books(self, filters: dict):
+        filter_price = filters.get('price')
+        filter_title = filters.get('title')
+        filter_authors = filters.get('authors')
+        filter_publisher = filters.get('publisher')
+        filter_order = filters.get('order_by', 'price')
+
+        types = []
+
+        if filter_price is not None:
+            if isinstance(filter_price, List):
+                filter_price = [price.split(':') for price in filter_price]
+            else:
+                filter_price = filter_price.split(':')
+            types.append('price')
+        if filter_title is not None:
+            types.append('title')
+        if filter_authors is not None:
+            types.append('authors')
+        if filter_publisher is not None:
+            types.append('publisher')
+
+        filters_params = filter(None, [filter_price, filter_title, filter_authors, filter_publisher])
+
+        return self.books_repo.get_books(dict(zip(types, filters_params)), filter_order)
+
 
     @join_point
     def get_all_books(self):

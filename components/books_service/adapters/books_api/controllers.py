@@ -17,6 +17,11 @@ from .join_points import join_point
 @component
 class Books:
     books_manager: services.BooksManager
+    books_updater: services.BooksUpdaterManager
+
+    @join_point
+    def on_post_test_data(self, request, response):
+        self.books_updater.get_tag_from_rabbit('rabbitmq')
 
     @join_point
     def on_get_book_info(self, request, response):
@@ -40,6 +45,22 @@ class Books:
         } for book in books]
         response.media = result
 
+
+    @join_point
+    def on_get_show_filters(self, request, response):
+        books = self.books_manager.filter_books(request.params)
+        response.media = [
+            {
+                'title': book.title,
+                'subtitle': book.subtitle,
+                'price': book.price,
+                'rating': book.rating,
+                'authors': book.authors,
+                'publisher': book.publisher,
+                'year': book.year,
+                'pages': book.pages
+            } for book in books
+        ]
 
 
 

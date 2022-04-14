@@ -39,6 +39,10 @@ class Application:
         books_repo=DB.books_repo,
         publisher=MessageBus.publisher,
     )
+    books_updater = services.BooksUpdaterManager(
+        books_repo=DB.books_repo,
+        publisher=MessageBus.publisher,
+    )
 
 
 # class MessageBusConsumer:
@@ -57,6 +61,7 @@ class Aspects:
 
 app = books_api.create_app(
     books_manager=Application.books_manager,
+    books_updater=Application.books_updater,
 )
 
 

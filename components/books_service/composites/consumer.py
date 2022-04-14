@@ -50,6 +50,3 @@ class Aspects:
 
 MessageBusConsumer.declare_scheme()
 MessageBusConsumer.consumer.run()
-
-# consumer = Thread(target=MessageBusConsumer.consumer.run, daemon=True)
-# consumer.start()
