@@ -51,7 +51,7 @@ class BookRepo(ABC):
         pass
 
     @abstractmethod
-    def get_filter_by_title(self, title: Union[str, List], query):
+    def get_filter_by_keyword(self, title: Union[str, List], query):
         pass
 
     @abstractmethod
