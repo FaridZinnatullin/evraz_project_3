@@ -1,9 +1,9 @@
-from evraz.classic.components import component
-from evraz.classic.sql_storage import BaseRepository
-from sqlalchemy.sql import select, and_
-
 from application import interfaces
 from application.dataclasses import User
+from sqlalchemy.sql import and_, select
+
+from evraz.classic.components import component
+from evraz.classic.sql_storage import BaseRepository
 
 
 @component
@@ -11,13 +11,11 @@ class UsersRepo(BaseRepository, interfaces.UserRepo):
 
     def get_by_id(self, user_id: int):
         query = select(User).where(User.id == user_id)
-        user = self.session.execute(query).scalars().one_or_none()
-        return user
+        return self.session.execute(query).scalars().one_or_none()
 
     def get_all(self):
         query = select(User)
-        users = self.session.execute(query).scalars().all()
-        return users
+        return self.session.execute(query).scalars().all()
 
     def add_instance(self, user: User):
         self.session.add(user)
@@ -39,5 +37,4 @@ class UsersRepo(BaseRepository, interfaces.UserRepo):
 
     def authorization(self, login: str, password: str):
         query = select(User).where(and_(User.login == login, User.password == password))
-        user = self.session.execute(query).scalars().one_or_none()
-        return user
+        return self.session.execute(query).scalars().one_or_none()

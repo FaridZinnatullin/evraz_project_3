@@ -1,14 +1,15 @@
-from typing import List, Optional
 import hashlib
+from typing import List, Optional
+
+from pydantic import validate_arguments
+
+from evraz.classic.app import DTO, validate_with_dto
 from evraz.classic.aspects import PointCut
 from evraz.classic.components import component
-from pydantic import validate_arguments
-from evraz.classic.app import DTO, validate_with_dto
 from evraz.classic.messaging import Message, Publisher
 
 from . import errors, interfaces
 from .dataclasses import User
-
 
 join_points = PointCut()
 join_point = join_points.join_point

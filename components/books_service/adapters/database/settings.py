@@ -1,6 +1,7 @@
-from pydantic import BaseSettings
 import os
+
 from dotenv import load_dotenv
+from pydantic import BaseSettings
 
 
 class Settings(BaseSettings):

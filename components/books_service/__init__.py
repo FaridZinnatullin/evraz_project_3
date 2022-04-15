@@ -1,3 +1,1 @@
-from . import application
-from . import adapters
-from . import composites
+from . import adapters, application, composites

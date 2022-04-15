@@ -1,6 +1,7 @@
-from evraz.classic.http_auth import Group, Permission, strategies
 import os
-from dotenv import load_dotenv
+
+from evraz.classic.http_auth import Group, Permission, strategies
+
 
 class Permissions:
     FULL_CONTROL = Permission('full_control')
@@ -12,7 +13,6 @@ class Groups:
 
 jwt_strategy = strategies.JWT(
     secret_key=os.getenv('SECRET_JWT_KEY'),
-    # algorithms=['MD-5']
 )
 
 ALL_GROUPS = (Groups.ADMINS, )

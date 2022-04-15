@@ -4,7 +4,7 @@ from typing import List, Union
 from evraz.classic.components import component
 from evraz.classic.sql_storage import BaseRepository
 from sqlalchemy import asc, desc
-from sqlalchemy.sql import select, and_
+from sqlalchemy.sql import and_, select
 
 from application import interfaces
 from application.dataclasses import Book, Booking
@@ -43,34 +43,25 @@ class BookingRepo(BaseRepository, interfaces.BookingRepo):
         return self.session.execute(query).scalars().all()
 
 
-
 @component
 class BookRepo(BaseRepository, interfaces.BookRepo):
 
     def get_by_id(self, book_id: int):
         query = select(Book).where(Book.id == book_id)
-        book = self.session.execute(query).scalars().one_or_none()
-        return book
+        return self.session.execute(query).scalars().one_or_none()
 
     def get_all(self):
         query = select(Book)
-        books = self.session.execute(query).scalars().all()
-        return books
+        return self.session.execute(query).scalars().all()
 
     def add_instance(self, instance: Book):
         self.session.add(instance)
         self.session.flush()
-
         return instance
-
-    # def add_instance_package(self, instances_package: list):
-    #     self.session.add_all(instances_package)
-    #     self.session.flush()
-    #     print('Добавили пакет')
 
     def add_instance_package(self, instances_package: list):
         for instance in instances_package:
-            if not self.session.query(Book).get(instance.id):
+            if not self.session.query(Book).filter(Book.id == instance.id).one_or_none():
                 self.session.add(instance)
         self.session.flush()
 
@@ -78,25 +69,20 @@ class BookRepo(BaseRepository, interfaces.BookRepo):
         book = self.get_by_id(book_id)
         self.session.delete(book)
 
-    def update_by_id(self, book: Book):
-        pass
-
     def get_by_name_author(self, author: str, name: str):
         query = select(Book).where(and_(Book.title == name, Book.authors == author))
-        book = self.session.execute(query).scalars().first()
-        return book
+        return self.session.execute(query).scalars().first()
 
-    def get_books(self, params: dict, order):
+    def get_books(self, params: dict, sorting_key):
         query = self.session.query(Book)
         query = self.get_filter(params, query)
-        query = self.order_book(order, query)
-        books = self.session.execute(query).scalars().all()
-        return books
+        query = self.sorting_book(sorting_key, query)
+        return self.session.execute(query).scalars().all()
 
-    def order_book(self, order: str, query):
-        if order == 'price':
+    def sorting_book(self, sorting_key: str, query):
+        if sorting_key == 'price':
             return query.order_by(Book.price)
-        if order == 'pages':
+        if sorting_key == 'pages':
             return query.order_by(Book.pages)
 
     def get_filter(self, params: dict, query):

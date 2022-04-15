@@ -1,6 +1,6 @@
+from application import dataclasses
 from sqlalchemy.orm import registry
 
-from application import dataclasses
 from . import tables
 
 mapper = registry()

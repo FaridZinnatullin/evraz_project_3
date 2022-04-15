@@ -1,5 +1,6 @@
-from evraz.classic.http_auth import Group, Permission, strategies
 import os
+
+from evraz.classic.http_auth import Group, Permission, strategies
 
 
 class Permissions:

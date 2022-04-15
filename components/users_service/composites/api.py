@@ -1,10 +1,10 @@
-from evraz.classic.messaging_kombu import KombuPublisher
-from evraz.classic.sql_storage import TransactionContext
+from adapters import database, message_bus, users_api
+from application import services
 from kombu import Connection
 from sqlalchemy import create_engine
 
-from adapters import database, users_api, message_bus
-from application import services
+from evraz.classic.messaging_kombu import KombuPublisher
+from evraz.classic.sql_storage import TransactionContext
 
 
 class Settings:

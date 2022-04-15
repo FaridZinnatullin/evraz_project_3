@@ -1,10 +1,8 @@
-from evraz.classic.components import component
-from evraz.classic.http_auth import (
-    authenticate,
-    authenticator_needed,
-)
-
 from application import services
+
+from evraz.classic.components import component
+from evraz.classic.http_auth import authenticate, authenticator_needed
+
 from .join_points import join_point
 
 
@@ -14,10 +12,6 @@ class Books:
     books_manager: services.BooksManager
     books_updater: services.BooksUpdaterManager
     booking_manager: services.BookingManager
-
-    @join_point
-    def on_post_test_data(self, request, response):
-        self.books_updater.get_tag_from_rabbit('rabbitmq')
 
     @join_point
     def on_get_book_info(self, request, response):

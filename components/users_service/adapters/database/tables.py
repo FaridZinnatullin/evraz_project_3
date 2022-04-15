@@ -1,17 +1,18 @@
+import datetime
+
 from sqlalchemy import (
+    BigInteger,
+    Boolean,
     Column,
+    DateTime,
     Float,
     ForeignKey,
     Integer,
     MetaData,
     String,
     Table,
-    Boolean,
-    DateTime,
-    BigInteger,
-    Text
+    Text,
 )
-import datetime
 
 # разобрать что за naming convention
 naming_convention = {

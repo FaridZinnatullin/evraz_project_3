@@ -12,7 +12,7 @@ class UserAlreadyExist(AppError):
 
 
 class UncorrectedParams(AppError):
-    msg_template = "You give me very bad params... I have no data for you"
+    msg_template = "You give bad params... I have no data for you"
     code = 'users.bad_params'
 
 

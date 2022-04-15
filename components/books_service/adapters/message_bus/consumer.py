@@ -1,8 +1,7 @@
+from application import services
 from kombu import Connection
 
 from evraz.classic.messaging_kombu import KombuConsumer
-
-from application import services
 
 from .scheme import broker_scheme
 
@@ -12,7 +11,7 @@ def create_consumer(connection: Connection, books: services.BooksUpdaterManager)
     consumer = KombuConsumer(connection=connection, scheme=broker_scheme)
 
     consumer.register_function(
-        books.get_tag_from_rabbit,
+        books.get_tag_from_rabbit_async,
         'BookTagsQueue',
     )
 

@@ -1,9 +1,8 @@
-from typing import Tuple, Union
+from application import services
 
 from evraz.classic.http_api import App
 from evraz.classic.http_auth import Authenticator
 
-from application import services
 from . import auth, controllers
 
 

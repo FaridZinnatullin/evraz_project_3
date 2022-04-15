@@ -1,14 +1,11 @@
-import jwt
 import os
 
 import jwt
-from evraz.classic.components import component
-from evraz.classic.http_auth import (
-    authenticator_needed,
-    authenticate
-)
-
 from application import services
+
+from evraz.classic.components import component
+from evraz.classic.http_auth import authenticate, authenticator_needed
+
 from .join_points import join_point
 
 

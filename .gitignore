@@ -11,3 +11,4 @@
 !/components/users_service/dist/
 /components/books_service/dist/
 /components/users_service/dist/
+/components/books_service/.pytest_cache/

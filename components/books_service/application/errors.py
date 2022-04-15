@@ -6,11 +6,6 @@ class NoPermission(AppError):
     code = 'books.no_permissions'
 
 
-class bookAlreadyExist(AppError):
-    msg_template = "This login is already occupied"
-    code = 'books.book_already_exist'
-
-
 class UncorrectedParams(AppError):
     msg_template = "Wa have no data with yours parameters"
     code = 'books.bad_params'
