@@ -6,7 +6,8 @@ from sqlalchemy import (
     String,
     Table,
     BigInteger,
-    DateTime
+    DateTime,
+    Boolean
 )
 
 naming_convention = {
@@ -56,4 +57,5 @@ booking = Table(
     Column('book_id', BigInteger, nullable=False),
     Column('created_datetime', DateTime, default=None),
     Column('expiry_datetime', DateTime, default=None),
+    Column('redeemed', Boolean, default=False)
 )

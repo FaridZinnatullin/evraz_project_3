@@ -12,13 +12,8 @@ class bookAlreadyExist(AppError):
 
 
 class UncorrectedParams(AppError):
-    msg_template = "You give me very bad params... I have no data for you"
+    msg_template = "Wa have no data with yours parameters"
     code = 'books.bad_params'
-
-
-class Bannedbook(AppError):
-    msg_template = "This book was banned in this chat"
-    code = 'books.banned_book'
 
 
 class UncorrectedLoginPassword(AppError):
@@ -36,6 +31,21 @@ class BookAlreadyExist(AppError):
     code = 'book.already exist'
 
 
+class BookAlreadyBooked(AppError):
+    msg_template = "This book is already booked"
+    code = 'book.already_booked'
+
+
 class BookingIsUnavailable(AppError):
     msg_template = "The booking time has expired or the booking has been deleted"
     code = 'booking.unavailable'
+
+
+class UserAlreadyHaveBooking(AppError):
+    msg_template = "Sorry, but you cannot have more than one active booking"
+    code = 'user.already_have_booking'
+
+
+class UserNoActiveBooking(AppError):
+    msg_template = "This user has no active bookings"
+    code = 'user.no_active_booking'

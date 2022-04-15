@@ -21,6 +21,10 @@ class BookingRepo(BaseRepository, interfaces.BookingRepo):
         query = select(Booking).where(Booking.book_id == book_id).order_by(desc(Booking.id)).limit(1)
         return self.session.execute(query).scalars().one_or_none()
 
+    def get_by_user_id(self, user_id: int):
+        query = select(Booking).where(Booking.user_id == user_id).order_by(desc(Booking.id)).limit(1)
+        return self.session.execute(query).scalars().one_or_none()
+
     def check_book_available(self, book_id: int):
         if self.get_by_book_id(book_id).expiry_datetime > datetime.datetime.now():
             return True
@@ -56,12 +60,19 @@ class BookRepo(BaseRepository, interfaces.BookRepo):
     def add_instance(self, instance: Book):
         self.session.add(instance)
         self.session.flush()
+
         return instance
 
+    # def add_instance_package(self, instances_package: list):
+    #     self.session.add_all(instances_package)
+    #     self.session.flush()
+    #     print('Добавили пакет')
+
     def add_instance_package(self, instances_package: list):
-        self.session.add_all(instances_package)
+        for instance in instances_package:
+            if not self.session.query(Book).get(instance.id):
+                self.session.add(instance)
         self.session.flush()
-        print('Добавили пакет')
 
     def delete_by_id(self, book_id: int):
         book = self.get_by_id(book_id)
@@ -71,7 +82,7 @@ class BookRepo(BaseRepository, interfaces.BookRepo):
         pass
 
     def get_by_name_author(self, author: str, name: str):
-        query = select(Book).where(and_(Book.name == name, Book.author == author))
+        query = select(Book).where(and_(Book.title == name, Book.authors == author))
         book = self.session.execute(query).scalars().first()
         return book
 
@@ -89,8 +100,8 @@ class BookRepo(BaseRepository, interfaces.BookRepo):
             return query.order_by(Book.pages)
 
     def get_filter(self, params: dict, query):
-        if 'title' in params:
-            query = self.get_filter_by_title(title=params.get('title'), query=query)
+        if 'keyword' in params:
+            query = self.get_filter_by_keyword(keyword=params.get('keyword'), query=query)
         if 'authors' in params:
             query = self.get_filter_by_authors(authors=params.get('authors'), query=query)
         if 'price' in params:
@@ -119,16 +130,16 @@ class BookRepo(BaseRepository, interfaces.BookRepo):
 
         return results[operation]
 
-    def get_filter_by_title(self, title: Union[str, List], query):
-        if isinstance(title, List):
-            title = ','.join(title)
-        title = title.replace('_', ' ')
+    def get_filter_by_keyword(self, keyword: Union[str, List], query):
+        if isinstance(keyword, List):
+            keyword = ','.join(keyword)
+        keyword = keyword.replace('_', ' ')
 
-        query_title = query.filter(Book.title.like(f'%{title}%'))
-        # query_subtitle = query.filter(Book.subtitle.like(f'%{title}%'))
-        # query_description = query.filter(Book.desc.like(f'%{title}%'))
+        query_title = query.filter(Book.title.like(f'%{keyword}%'))
+        query_subtitle = query.filter(Book.subtitle.like(f'%{keyword}%'))
+        query_description = query.filter(Book.desc.like(f'%{keyword}%'))
 
-        return query_title
+        return query_title.union(query_subtitle).union(query_description)
 
     def get_filter_by_authors(self, authors: Union[str, List], query):
         if isinstance(authors, List):

@@ -26,4 +26,5 @@ class Booking:
     book_id: int
     created_datetime: Optional[datetime.datetime] = None
     expiry_datetime: Optional[datetime.datetime] = None
+    redeemed: Optional[bool] = False
     id: Optional[int] = None

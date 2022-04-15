@@ -36,14 +36,33 @@ class BookingManager:
         #     raise errors.UncorrectedParams
         return booking
 
+    @join_point
+    def get_by_user_id(self, user_id):
+        booking = self.booking_repo.get_by_user_id(user_id=user_id)
+        return booking
 
     @join_point
-    def check_book_available(self, book_id):
+    def get_active_booking(self, user_id):
+        booking = self.get_by_user_id(user_id=user_id)
+        if booking.redeemed or booking.expiry_datetime < datetime.datetime.now():
+            raise errors.UserNoActiveBooking
+
+        return booking
+
+    @join_point
+    def check_book_available(self, book_id, user_id):
         # Проверяем существование книги
         if not self.books_repo.get_by_id(book_id):
             raise errors.UncorrectedParams
 
-        # Проверяем, не забронирована ли она
+        # Достаем последнюю бронь пользователя
+        users_booking = self.get_by_user_id(user_id=user_id)
+
+        # Если у него все еще есть активная бронь, кидаем ошибку
+        if users_booking.expiry_datetime > datetime.datetime.now() and not users_booking.redeemed:
+            raise errors.UserAlreadyHaveBooking
+
+        # Достаем последнюю бронь по данной книге
         booking = self.get_by_book_id(book_id)
 
         # Если никаких заявок на книгу не было
@@ -52,7 +71,7 @@ class BookingManager:
 
         # Если брони есть, то смотрим, не вышел ли срок
         if booking.expiry_datetime > datetime.datetime.now():
-            raise errors.BookIsUnavailable
+            raise errors.BookAlreadyBooked
 
         return True
 
@@ -64,7 +83,7 @@ class BookingManager:
 
     @join_point
     def booking_book(self, book_id: int, user_id: int, period: Optional[int] = 7):
-        if self.check_book_available(book_id=book_id):
+        if self.check_book_available(book_id=book_id, user_id=user_id):
             booking = Booking(
                 book_id=book_id,
                 user_id=user_id,
@@ -80,7 +99,7 @@ class BookingManager:
             if booking is None:
                 raise errors.UncorrectedParams
 
-            if booking.expiry_datetime < datetime.datetime.now():
+            if booking.expiry_datetime < datetime.datetime.now() or booking.redeemed:
                 raise errors.BookingIsUnavailable
 
             booking.expiry_datetime = datetime.date(1800, 10, 10)
@@ -155,10 +174,12 @@ class BooksUpdaterManager:
     @join_point
     def get_tag_from_rabbit(self, book_tags: list, batch_datetime: str):
         total_books = {}
+
         # Отправка первого запроса для получения количества книг:
         for book_tag in book_tags:
             response = requests.get(f'{self.SERVICE_SEARCH_URL}{book_tag}')
             response = response.json()
+            total_books[book_tag] = []
             books_count = int(response.get('total'))
             pages_count = books_count // 10 + int((books_count % 10) > 0)
             if pages_count > 5:
@@ -167,10 +188,9 @@ class BooksUpdaterManager:
             print(f'Количество страниц для {book_tag}: {pages_count}')
 
             # Постраничный проход
-            for page_num in range(pages_count):
+            for page_num in range(1, pages_count + 1):
                 response = requests.get(f'{self.SERVICE_SEARCH_URL}{book_tag}/{page_num}')
                 response = response.json()
-                total_books[book_tag] = []
 
                 # Для каждой книги создаем dataclass
                 for book in response.get('books'):
@@ -201,7 +221,7 @@ class BooksManager:
     @join_point
     def filter_books(self, filters: dict):
         filter_price = filters.get('price')
-        filter_title = filters.get('title')
+        filter_keyword = filters.get('keyword')
         filter_authors = filters.get('authors')
         filter_publisher = filters.get('publisher')
         filter_order = filters.get('order_by', 'price')
@@ -214,14 +234,14 @@ class BooksManager:
             else:
                 filter_price = filter_price.split(':')
             types.append('price')
-        if filter_title is not None:
-            types.append('title')
+        if filter_keyword is not None:
+            types.append('keyword')
         if filter_authors is not None:
             types.append('authors')
         if filter_publisher is not None:
             types.append('publisher')
 
-        filters_params = filter(None, [filter_price, filter_title, filter_authors, filter_publisher])
+        filters_params = filter(None, [filter_price, filter_keyword, filter_authors, filter_publisher])
 
         return self.books_repo.get_books(dict(zip(types, filters_params)), filter_order)
 

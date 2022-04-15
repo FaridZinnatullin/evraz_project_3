@@ -89,9 +89,10 @@ class BookingRepo(ABC):
     def add_instance(self, booking_data):
         pass
 
-
     @abstractmethod
-    def get_users_booking(self, user_id):
+    def get_users_booking(self, user_id: int):
         pass
 
-
+    @abstractmethod
+    def get_by_user_id(self, user_id: int):
+        pass
