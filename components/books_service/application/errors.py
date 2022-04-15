@@ -44,3 +44,7 @@ class UserAlreadyHaveBooking(AppError):
 class UserNoActiveBooking(AppError):
     msg_template = "This user has no active bookings"
     code = 'user.no_active_booking'
+
+class DownloadError(AppError):
+    msg_template = "An error occurred while downloading data from the service"
+    code = 'book.download_error'

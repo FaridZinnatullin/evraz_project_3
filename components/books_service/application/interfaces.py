@@ -35,7 +35,7 @@ class BookRepo(ABC):
         pass
 
     @abstractmethod
-    def get_books(self, params: dict, order):
+    def get_books_with_filters(self, params: dict, order):
         pass
 
     @abstractmethod

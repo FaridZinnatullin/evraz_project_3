@@ -73,7 +73,7 @@ class BookRepo(BaseRepository, interfaces.BookRepo):
         query = select(Book).where(and_(Book.title == name, Book.authors == author))
         return self.session.execute(query).scalars().first()
 
-    def get_books(self, params: dict, sorting_key):
+    def get_books_with_filters(self, params: dict, sorting_key):
         query = self.session.query(Book)
         query = self.get_filter(params, query)
         query = self.sorting_book(sorting_key, query)
@@ -142,5 +142,4 @@ class BookRepo(BaseRepository, interfaces.BookRepo):
     def get_top_by_tag(self, tag: str, batch_datetime: str):
         query = select(Book).where(and_(Book.service_tag == tag, Book.batch_datetime == batch_datetime)).order_by(
             desc(Book.rating), asc(Book.year)).limit(3)
-        books = self.session.execute(query).scalars().all()
-        return books
+        return self.session.execute(query).scalars().all()

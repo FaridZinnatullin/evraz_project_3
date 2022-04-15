@@ -8,7 +8,7 @@ import requests
 from evraz.classic.aspects import PointCut
 from evraz.classic.components import component
 from evraz.classic.messaging import Message, Publisher
-
+from pydantic import conint, validate_arguments
 from . import errors, interfaces
 from .dataclasses import Book, Booking
 
@@ -106,14 +106,16 @@ class BookingManager:
 
     @join_point
     def redeem_booking(self, booking_id: int, user_id: int):
-        if self.check_permission(booking_id=booking_id, user_id=user_id):
-            booking = self.get_by_id(booking_id)
+        if not self.check_permission(booking_id=booking_id, user_id=user_id):
+            raise errors.NoPermission
 
-            if booking.expiry_datetime < datetime.datetime.now():
-                raise errors.BookingIsUnavailable
+        booking = self.get_by_id(booking_id)
 
-            booking.expiry_datetime = datetime.date(2800, 10, 10)
-            self.booking_repo.add_instance(booking)
+        if booking.expiry_datetime < datetime.datetime.now():
+            raise errors.BookingIsUnavailable
+
+        booking.expiry_datetime = datetime.date(2800, 10, 10)
+        self.booking_repo.add_instance(booking)
 
     @join_point
     def get_all_users_booking(self, user_id: int):
@@ -130,6 +132,9 @@ class BooksUpdaterManager:
     @join_point
     def create_and_get(self, book_id: str, service_tag: str, batch_datetime: str):
         response = requests.get(f'{self.SERVICE_BOOK_URL}{book_id}')
+        if response.status_code == 404:
+            raise errors.DownloadError
+
         response = response.json()
         book = Book(
             id=int(response.get('isbn13')),
@@ -148,7 +153,7 @@ class BooksUpdaterManager:
         return book
 
     @join_point
-    def add_books_package(self, books_package):
+    def add_books_package(self, books_package: list):
         self.books_repo.add_instance_package(books_package)
 
     @join_point
@@ -165,7 +170,7 @@ class BooksUpdaterManager:
                               for book in top_books[tag]]
 
         self.publisher.publish(
-            Message('BookSenderExchange', {'top_books': top_books}),
+            Message('TopBooksExchange', {'top_books': top_books}),
         )
 
     @join_point
@@ -245,6 +250,7 @@ class BooksManager:
     SERVICE_SEARCH_URL = 'https://api.itbook.store/1.0/search/'
 
     @join_point
+    @validate_arguments
     def get_book_by_id(self, book_id: int) -> Book:
         book = self.books_repo.get_by_id(book_id)
         if not book:
@@ -275,17 +281,19 @@ class BooksManager:
 
         filters_params = filter(None, [filter_price, filter_keyword, filter_authors, filter_publisher])
 
-        return self.books_repo.get_books(dict(zip(types, filters_params)), sorting_key)
+        return self.books_repo.get_books_with_filters(dict(zip(types, filters_params)), sorting_key)
 
     @join_point
     def get_all_books(self):
         books = self.books_repo.get_all()
         if not books:
-            raise errors.UncorrectedParams()
+            raise errors.UncorrectedParams
         return books
 
     @join_point
     def get_book_from_service(self, tags):
+        if not tags:
+            raise errors.UncorrectedParams
         # Фиксируем время "партии"
         batch_datetime = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
