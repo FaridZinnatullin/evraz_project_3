@@ -27,7 +27,9 @@ class Books:
             'pages': book.pages,
             'desc': book.desc,
             'service_tag': book.service_tag,
-            'batch_datetime': book.batch_datetime
+            'batch_datetime': book.batch_datetime,
+            'redeemed': book.redeemed,
+            'booking_datetime': book.booking_datetime
         }
 
     @join_point
@@ -46,7 +48,9 @@ class Books:
                 'pages': book.pages,
                 'desc': book.desc,
                 'service_tag': book.service_tag,
-                'batch_datetime': book.batch_datetime
+                'batch_datetime': book.batch_datetime,
+                'redeemed': book.redeemed,
+                'booking_datetime': book.booking_datetime
             } for book in books]
 
     @join_point
@@ -65,7 +69,9 @@ class Books:
                 'pages': book.pages,
                 'desc': book.desc,
                 'service_tag': book.service_tag,
-                'batch_datetime': book.batch_datetime
+                'batch_datetime': book.batch_datetime,
+                'redeemed': book.redeemed,
+                'booking_datetime': book.booking_datetime
             } for book in books
         ]
 

@@ -36,7 +36,8 @@ books = Table(
     Column('desc', String(1024)),
     Column('service_tag', String(64)),
     Column('batch_datetime', String(64)),
-    Column('available', Boolean, default=True)
+    Column('redeemed', Boolean, default=False),
+    Column('booking_datetime', String(64), default=None)
 )
 
 booking = Table(

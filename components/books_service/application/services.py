@@ -1,17 +1,15 @@
 import datetime
+import threading
 from typing import List, Optional
 
-import threading
-
 import requests
-
 from evraz.classic.aspects import PointCut
 from evraz.classic.components import component
 from evraz.classic.messaging import Message, Publisher
-from pydantic import conint, validate_arguments
+from pydantic import validate_arguments
+
 from . import errors, interfaces
 from .dataclasses import Book, Booking
-
 
 join_points = PointCut()
 join_point = join_points.join_point
@@ -40,6 +38,24 @@ class BookingManager:
     def get_by_user_id(self, user_id):
         booking = self.booking_repo.get_by_user_id(user_id=user_id)
         return booking
+
+    @join_point
+    def set_booking_datetime_for_book(self, book_id: int, booking_datetime: datetime.datetime):
+        book = self.books_repo.get_by_id(book_id=book_id)
+        book.booking_datetime = booking_datetime.strftime('%Y-%m-%d %H:%M:%S')
+        self.books_repo.add_instance(book)
+
+    @join_point
+    def make_book_redeemed(self, book_id: int):
+        book = self.books_repo.get_by_id(book_id=book_id)
+        book.redeemed = True
+        self.books_repo.add_instance(book)
+
+    @join_point
+    def make_book_unredeemed(self, book_id: int):
+        book = self.books_repo.get_by_id(book_id=book_id)
+        book.redeemed = False
+        self.books_repo.add_instance(book)
 
     @join_point
     def get_active_booking(self, user_id):
@@ -92,6 +108,11 @@ class BookingManager:
             )
             self.booking_repo.add_instance(booking)
 
+            # Ставим книге дату окончания бронирования:
+            self.set_booking_datetime_for_book(book_id=book_id,
+                                               booking_datetime=datetime.datetime.now() + datetime.timedelta(
+                                                   days=period))
+
     @join_point
     def delete_booking(self, booking_id: int, user_id: int):
         if self.check_permission(booking_id=booking_id, user_id=user_id):
@@ -112,32 +133,22 @@ class BookingManager:
 
         booking = self.get_by_id(booking_id)
 
-        if booking.expiry_datetime < datetime.datetime.now() or booking.redeemed==True:
+        if booking.expiry_datetime < datetime.datetime.now() or booking.redeemed == True:
             raise errors.BookingIsUnavailable
 
         booking.expiry_datetime = datetime.date(2800, 10, 10)
         booking.redeemed = True
 
         # Делаем книгу недоступной
-        self.make_book_unavailable(booking.book_id)
+        self.make_book_redeemed(booking.book_id)
 
         self.booking_repo.add_instance(booking)
+
 
     @join_point
     def get_all_users_booking(self, user_id: int):
         return self.booking_repo.get_users_booking(user_id=user_id)
 
-    @join_point
-    def make_book_available(self, book_id: int):
-        book = self.books_repo.get_by_id(book_id=book_id)
-        book.available = True
-        self.books_repo.add_instance(book)
-
-    @join_point
-    def make_book_unavailable(self, book_id: int):
-        book = self.books_repo.get_by_id(book_id=book_id)
-        book.available = False
-        self.books_repo.add_instance(book)
 
 @component
 class BooksUpdaterManager:
@@ -231,7 +242,6 @@ class BooksUpdaterManager:
             total_books.append(book_info)
 
         self.books_repo.add_instance_package(total_books)
-
 
     @join_point
     def get_tag_from_rabbit_async(self, book_tags: list, batch_datetime: str):

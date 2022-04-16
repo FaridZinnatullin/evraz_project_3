@@ -22,7 +22,7 @@ data_book = {
     'desc': 'Puzzle-based learning is an active learning technique. With code puzzles, you will learn faster, smarter, and better.Coffee Break Python Slicing is all about growing your Python expertise - one coffee at a time. The focus lies on the important slicing technique to access consecutive data ranges. Und...',
     'service_tag': 'python',
     'batch_datetime': '15.04.2022 17:59:44',
-    'available': True
+    'redeemed': False
 }
 
 data_book_1 = {
@@ -38,14 +38,31 @@ data_book_1 = {
     'desc': 'If you are looking for a straightforward, practical...',
     'service_tag': 'azure',
     'batch_datetime': '15.04.2022 17:59:44',
-    'available': True
+    'redeemed': False
+}
+
+data_book_3 = {
+    'id': 1001605784161,
+    'title': 'Coffee Break Python Slicing',
+    'subtitle': '24 Workouts to Master Slicing in Python, Once and for All',
+    'price': 0.00,
+    'rating': 0,
+    'authors': 'Christian Mayer',
+    'publisher': 'Self-publishing',
+    'year': 2018,
+    'pages': 89,
+    'desc': 'Puzzle-based learning is an active learning technique. With code puzzles, you will learn faster, smarter, and better.Coffee Break Python Slicing is all about growing your Python expertise - one coffee at a time. The focus lies on the important slicing technique to access consecutive data ranges. Und...',
+    'service_tag': 'python',
+    'batch_datetime': '15.04.2022 17:59:44',
+    'redeemed': False,
+    'booking_datetime': None
 }
 
 
 def test_create_and_get(service_book_updater):
     book = service_book_updater.create_and_get(book_id=data_book['id'], service_tag=data_book['service_tag'],
                                                batch_datetime=data_book['batch_datetime'])
-    assert asdict(book) == data_book
+    assert asdict(book) == data_book_3
 
 
 def test_create_and_get_download_error(service_book_updater):

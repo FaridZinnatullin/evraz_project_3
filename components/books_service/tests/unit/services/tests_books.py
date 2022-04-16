@@ -23,7 +23,8 @@ data_book = {
     'desc': 'Puzzle-based learning is an active learning technique. With code puzzles, you will learn faster, smarter, and better.Coffee Break Python Slicing is all about growing your Python expertise - one coffee at a time. The focus lies on the important slicing technique to access consecutive data ranges. Und...',
     'service_tag': 'python',
     'batch_datetime': '15.04.2022 17:59:44',
-    'available': True
+    'redeemed': False,
+    'booking_datetime': '25.04.2022 17:59:44'
 }
 
 data_book_1 = {
@@ -39,7 +40,8 @@ data_book_1 = {
     'desc': 'If you are looking for a straightforward, practical...',
     'service_tag': 'azure',
     'batch_datetime': '15.04.2022 17:59:44',
-    'available': True
+    'redeemed': False,
+    'booking_datetime': '25.04.2022 17:59:44'
 }
 
 
