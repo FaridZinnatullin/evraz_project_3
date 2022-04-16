@@ -33,7 +33,7 @@ books = Table(
     Column('publisher', String(256)),
     Column('year', Integer),
     Column('pages', Integer),
-    Column('desc', String(256)),
+    Column('desc', String(1024)),
     Column('service_tag', String(64)),
     Column('batch_datetime', String(64))
 )

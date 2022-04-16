@@ -12,7 +12,7 @@ class Groups:
 
 
 jwt_strategy = strategies.JWT(
-    secret_key=os.getenv('SECRET_JWT_KEY'),
+    secret_key=os.getenv('SECRET_JWT_KEY', 'SECRET_JWT_KEY'),
 )
 
 ALL_GROUPS = (Groups.ADMINS, )

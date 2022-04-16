@@ -1,27 +1,6 @@
 import json
 
 
-def test__on_get_show_product(client, catalog_service, product_1):
-    product_1.sku = 'FOO'
-    product_1.title = 'BAR'
-    product_1.description = 'SPAM'
-    product_1.price = 100.1
-
-    catalog_service.get_product.return_value = product_1
-
-    expected = {
-        'sku': product_1.sku,
-        'title': product_1.title,
-        'description': product_1.description,
-        'price': product_1.price,
-    }
-
-    result = client.simulate_get('/api/catalog/show_product')
-
-    assert result.status_code == 200
-    assert result.json == expected
-
-
 def test__on_get_user_info(client, users_service):
     user_id = 1
     expected = {
@@ -41,6 +20,7 @@ def test__on_get_user_info(client, users_service):
     assert result.status_code == 200
     assert result.json == expected
 
+
 def test__on_post_registration(client, users_service):
     user_media = {
         'login': 'user1',
@@ -51,5 +31,14 @@ def test__on_post_registration(client, users_service):
 
     assert result.status_code == 200
 
+
 def test__on_post_login(client, users_service):
-    pass
+    user_media = {
+        'login': 'user1',
+        'password': 'password1',
+    }
+    result = client.simulate_post(f'/api/users/login', body=json.dumps(user_media))
+
+    assert result.status_code == 200
+    result = result.json
+    assert result.get('token') is not None

@@ -1,8 +1,7 @@
-from application import services
-
 from evraz.classic.components import component
 from evraz.classic.http_auth import authenticate, authenticator_needed
 
+from application import services
 from .join_points import join_point
 
 
@@ -16,35 +15,27 @@ class Books:
     @join_point
     def on_get_book_info(self, request, response):
         book = self.books_manager.get_book_by_id(**request.params)
-        result = {
-            'book_id': book.id,
-            'book_title': book.title,
-            'book_subtitle': book.subtitle,
+        response.media = {
+            'id': book.id,
+            'title': book.title,
+            'subtitle': book.subtitle,
+            'price': book.price,
+            'rating': book.rating,
+            'authors': book.authors,
             'publisher': book.publisher,
-            'book_authors': book.authors,
-            'book_pages': book.pages,
-            'book_rating': book.rating,
-            'book_price': book.price,
-            'book_description': book.desc
+            'year': book.year,
+            'pages': book.pages,
+            'desc': book.desc,
+            'service_tag': book.service_tag,
+            'batch_datetime': book.batch_datetime
         }
-        response.media = result
 
     @join_point
     def on_get_all_books(self, request, response):
-        books = self.books_manager.get_all_books(**request.params)
-        result = [{
-            'book_id': book.id,
-            'book_title': book.title,
-            'book_authors': book.authors,
-            'book_rating': book.rating
-        } for book in books]
-        response.media = result
-
-    @join_point
-    def on_get_show_filters(self, request, response):
-        books = self.books_manager.filter_books(request.params)
+        books = self.books_manager.get_all_books()
         response.media = [
             {
+                'id': book.id,
                 'title': book.title,
                 'subtitle': book.subtitle,
                 'price': book.price,
@@ -52,7 +43,29 @@ class Books:
                 'authors': book.authors,
                 'publisher': book.publisher,
                 'year': book.year,
-                'pages': book.pages
+                'pages': book.pages,
+                'desc': book.desc,
+                'service_tag': book.service_tag,
+                'batch_datetime': book.batch_datetime
+            } for book in books]
+
+    @join_point
+    def on_get_with_filters(self, request, response):
+        books = self.books_manager.filter_books(request.params)
+        response.media = [
+            {
+                'id': book.id,
+                'title': book.title,
+                'subtitle': book.subtitle,
+                'price': book.price,
+                'rating': book.rating,
+                'authors': book.authors,
+                'publisher': book.publisher,
+                'year': book.year,
+                'pages': book.pages,
+                'desc': book.desc,
+                'service_tag': book.service_tag,
+                'batch_datetime': book.batch_datetime
             } for book in books
         ]
 
@@ -68,10 +81,11 @@ class Books:
         request.params['user_id'] = request.context.client.user_id
         booking = self.booking_manager.get_by_id(**request.params)
         response.media = {
-            'booking_id': booking.id,
+            'id': booking.id,
             'book_id': booking.book_id,
-            'created_at': booking.created_datetime,
-            'expiry_datetime': booking.expiry_datetime,
+            'user_id': booking.user_id,
+            'created_datetime': booking.created_datetime.strftime('%Y-%m-%d %H:%M:%S'),
+            'expiry_datetime': booking.expiry_datetime.strftime('%Y-%m-%d %H:%M:%S'),
             'redeemed': booking.redeemed
         }
 
@@ -81,9 +95,10 @@ class Books:
         request.params['user_id'] = request.context.client.user_id
         bookings = self.booking_manager.get_all_users_booking(**request.params)
         response.media = [{
-            'booking_id': booking.id,
+            'id': booking.id,
             'book_id': booking.book_id,
-            'created_at': booking.created_datetime.strftime('%Y-%m-%d %H:%M:%S'),
+            'user_id': booking.user_id,
+            'created_datetime': booking.created_datetime.strftime('%Y-%m-%d %H:%M:%S'),
             'expiry_datetime': booking.expiry_datetime.strftime('%Y-%m-%d %H:%M:%S'),
             'redeemed': booking.redeemed
         } for booking in bookings]
@@ -106,9 +121,10 @@ class Books:
         request.params['user_id'] = request.context.client.user_id
         booking = self.booking_manager.get_active_booking(**request.params)
         response.media = {
-            'booking_id': booking.id,
+            'id': booking.id,
             'book_id': booking.book_id,
-            'created_at': booking.created_datetime.strftime('%Y-%m-%d %H:%M:%S'),
+            'user_id': booking.user_id,
+            'created_datetime': booking.created_datetime.strftime('%Y-%m-%d %H:%M:%S'),
             'expiry_datetime': booking.expiry_datetime.strftime('%Y-%m-%d %H:%M:%S'),
             'redeemed': booking.redeemed
         }
