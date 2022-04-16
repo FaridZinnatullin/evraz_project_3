@@ -57,9 +57,10 @@ class BookingManager:
         # Достаем последнюю бронь пользователя
         users_booking = self.get_by_user_id(user_id=user_id)
 
-        # Если у него все еще есть активная бронь, кидаем ошибку
-        if users_booking.expiry_datetime > datetime.datetime.now() and not users_booking.redeemed:
-            raise errors.UserAlreadyHaveBooking
+        if users_booking:
+            # Если у него все еще есть активная бронь, кидаем ошибку
+            if users_booking.expiry_datetime > datetime.datetime.now() and not users_booking.redeemed:
+                raise errors.UserAlreadyHaveBooking
 
         # Достаем последнюю бронь по данной книге
         booking = self.get_by_book_id(book_id)
@@ -111,16 +112,32 @@ class BookingManager:
 
         booking = self.get_by_id(booking_id)
 
-        if booking.expiry_datetime < datetime.datetime.now():
+        if booking.expiry_datetime < datetime.datetime.now() or booking.redeemed==True:
             raise errors.BookingIsUnavailable
 
         booking.expiry_datetime = datetime.date(2800, 10, 10)
+        booking.redeemed = True
+
+        # Делаем книгу недоступной
+        self.make_book_unavailable(booking.book_id)
+
         self.booking_repo.add_instance(booking)
 
     @join_point
     def get_all_users_booking(self, user_id: int):
         return self.booking_repo.get_users_booking(user_id=user_id)
 
+    @join_point
+    def make_book_available(self, book_id: int):
+        book = self.books_repo.get_by_id(book_id=book_id)
+        book.available = True
+        self.books_repo.add_instance(book)
+
+    @join_point
+    def make_book_unavailable(self, book_id: int):
+        book = self.books_repo.get_by_id(book_id=book_id)
+        book.available = False
+        self.books_repo.add_instance(book)
 
 @component
 class BooksUpdaterManager:
@@ -168,10 +185,10 @@ class BooksUpdaterManager:
                                'price': book.price
                                }
                               for book in top_books[tag]]
-
-        self.publisher.publish(
-            Message('TopBooksExchange', {'top_books': top_books}),
-        )
+        if top_books:
+            self.publisher.publish(
+                Message('TopBooksExchange', {'top_books': top_books}),
+            )
 
     @join_point
     def get_tag_from_rabbit(self, book_tags: list, batch_datetime: str):

@@ -51,7 +51,7 @@ class BookRepo(BaseRepository, interfaces.BookRepo):
         return self.session.execute(query).scalars().one_or_none()
 
     def get_all(self):
-        query = select(Book)
+        query = select(Book).where(Book.available == True)
         return self.session.execute(query).scalars().all()
 
     def add_instance(self, instance: Book):
@@ -74,7 +74,7 @@ class BookRepo(BaseRepository, interfaces.BookRepo):
         return self.session.execute(query).scalars().first()
 
     def get_books_with_filters(self, params: dict, sorting_key):
-        query = self.session.query(Book)
+        query = self.session.query(Book).where(Book.available == True)
         query = self.get_filter(params, query)
         query = self.sorting_book(sorting_key, query)
         return self.session.execute(query).scalars().all()

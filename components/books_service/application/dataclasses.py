@@ -18,6 +18,7 @@ class Book:
     desc: Optional[str] = None
     service_tag: Optional[str] = None
     batch_datetime: Optional[str] = None
+    available: Optional[bool] = True
 
 
 @attr.dataclass

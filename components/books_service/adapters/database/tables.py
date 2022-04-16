@@ -35,7 +35,8 @@ books = Table(
     Column('pages', Integer),
     Column('desc', String(1024)),
     Column('service_tag', String(64)),
-    Column('batch_datetime', String(64))
+    Column('batch_datetime', String(64)),
+    Column('available', Boolean, default=True)
 )
 
 booking = Table(
