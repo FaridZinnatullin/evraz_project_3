@@ -22,9 +22,7 @@ class BookRepo(ABC):
     def delete_by_id(self, book_id: int):
         pass
 
-    @abstractmethod
-    def update_by_id(self, book: Book):
-        pass
+
 
     @abstractmethod
     def get_by_name_author(self, author: str, name: str):
@@ -39,7 +37,7 @@ class BookRepo(ABC):
         pass
 
     @abstractmethod
-    def order_book(self, order: str, query):
+    def sorting_book(self, order: str, query):
         pass
 
     @abstractmethod
