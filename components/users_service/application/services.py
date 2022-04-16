@@ -64,17 +64,11 @@ class UsersManager:
 
 
     @join_point
-    @validate_with_dto
-    def update_user(self, user_data: UserInfo):
-        pass
-
-    @join_point
     @validate_arguments
     def login(self, login: str, password: str):
         password = hashlib.sha256(bytes(password, encoding='utf-8')).hexdigest()
         user = self.users_repo.authorization(login, password)
-        if user:
-            return user
-        else:
+        if not user:
             raise errors.UncorrectedLoginPassword()
 
+        return user
