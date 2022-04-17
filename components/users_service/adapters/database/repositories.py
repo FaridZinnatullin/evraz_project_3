@@ -36,5 +36,7 @@ class UsersRepo(BaseRepository, interfaces.UserRepo):
         return False
 
     def authorization(self, login: str, password: str):
-        query = select(User).where(and_(User.login == login, User.password == password))
+        query = select(User).where(
+            and_(User.login == login, User.password == password)
+        )
         return self.session.execute(query).scalars().one_or_none()

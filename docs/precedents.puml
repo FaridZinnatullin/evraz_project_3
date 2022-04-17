@@ -1,43 +1,47 @@
 @startuml
 
-header Демо проект
+header Evraz project 3
 title Диаграмма прецедентов
 
 left to right direction
 
-rectangle "Оформление заказа" {
-  usecase "Посмотреть корзину" as show_cart
-  usecase "Добавить товар в корзину" as add_to_cart
-  usecase "Удалить товар из корзины" as remove_from_cart
-  usecase "Сделать заказ" as register_order
+rectangle "Сервис бронирования" {
+  usecase "Забронировать книгу" as create_booking
+  usecase "Посмотреть инфо о брони" as show_booking_info
+  usecase "Посмотреть свои брони" as show_all_bookings
+  usecase "Посмотреть активную бронь" as show_active_booking
+  usecase "Удалить бронь" as delete_booking
+  usecase "Выкупить бронь" as redeem_booking
 }
 
-rectangle "Каталог" {
-  usecase "Посмотреть товар" as show_product
-  usecase "Найти товары по названию или описанию" as search_products
-}
-
-rectangle "Авторизированный пользователь" {
-  usecase "Посмотреть заказ" as show_order
+rectangle "Сервис книг" {
+  usecase "Посмотреть инфо о книге" as show_book_info
+  usecase "Посмотреть список книг" as show_all_books
+  usecase "Посмотреть список книг с фильтрами" as show_books_with_filter
 }
 
 rectangle "Сервис пользователей" {
   usecase "Регистрация" as registration
   usecase "Авторизация" as authorization
-  usecase "Посмотреть инфу о себе" as authorization
+  usecase "Посмотреть инфу о себе" as show_self_info
 }
 
-'actor "Покупатель" as сlient
-'сlient -- show_cart
-'сlient -- add_to_cart
-'сlient -- remove_from_cart
-'сlient -- register_order
-'сlient -- show_product
-'сlient -- search_products
-'сlient -- show_order
-'
-'
-'actor "Администратор" as admin
-'admin -- show_customer
+actor "Пользователь (не авторизированный)" as noauth_user
+noauth_user -- registration
+noauth_user -- authorization
+noauth_user -- show_book_info
+noauth_user -- show_all_books
+noauth_user -- show_books_with_filter
 
+
+actor "Пользователь (авторизированный)" as auth_user
+auth_user -- create_booking
+auth_user -- show_booking_info
+auth_user -- show_all_bookings
+auth_user -- show_active_booking
+auth_user -- delete_booking
+auth_user -- redeem_booking
+auth_user -- show_self_info
+
+noauth_user -- auth_user
 @enduml

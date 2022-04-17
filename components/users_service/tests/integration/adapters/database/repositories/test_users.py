@@ -75,13 +75,10 @@ def test__delete_by_id(repo, fill_db):
 
 
 def test__authorization(repo, fill_db):
-    test_data = {
-        'login': 'test_login',
-        'password': 'test_password'
-    }
-    user = repo.authorization(login=test_data['login'],
-                              password=test_data['password'])
+    test_data = {'login': 'test_login', 'password': 'test_password'}
+    user = repo.authorization(
+        login=test_data['login'], password=test_data['password']
+    )
 
     assert user != None
     assert user.id != None
-

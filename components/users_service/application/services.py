@@ -1,12 +1,10 @@
 import hashlib
-from typing import List, Optional
-
-from pydantic import validate_arguments
 
 from evraz.classic.app import DTO, validate_with_dto
 from evraz.classic.aspects import PointCut
 from evraz.classic.components import component
 from evraz.classic.messaging import Message, Publisher
+from pydantic import validate_arguments
 
 from . import errors, interfaces
 from .dataclasses import User
@@ -32,13 +30,21 @@ class UsersManager:
         if self.users_repo.check_user_login(user_data.login):
             raise errors.UserAlreadyExist()
         else:
-            user_data.password = hashlib.sha256(bytes(user_data.password, encoding='utf-8')).hexdigest()
-            user = User(login=user_data.login,
-                        password=user_data.password,
-                        name=user_data.name)
+            user_data.password = hashlib.sha256(
+                bytes(user_data.password, encoding='utf-8')
+            ).hexdigest()
+            user = User(
+                login=user_data.login,
+                password=user_data.password,
+                name=user_data.name
+            )
 
             self.users_repo.add_instance(user)
 
+            self.publisher.publish(
+                Message('UserRegistrationExchange', {'user_name': user.name,
+                                                     'user_email': user.login}),
+            )
 
     @join_point
     @validate_arguments
@@ -61,7 +67,6 @@ class UsersManager:
             self.users_repo.delete_by_id(user_id)
         else:
             raise errors.UncorrectedParams()
-
 
     @join_point
     @validate_arguments

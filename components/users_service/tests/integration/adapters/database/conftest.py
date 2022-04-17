@@ -43,4 +43,3 @@ def session(transaction_context: TransactionContext):
     yield session
 
     session.rollback()
-

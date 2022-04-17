@@ -73,6 +73,7 @@ def test_get_all_books_uncorrected(service_book, books_repo):
     with pytest.raises(errors.UncorrectedParams):
         service_book.get_all_books()
 
+
 def test_get_book_from_service_uncorrected_params(service_book):
     tags = []
     with pytest.raises(errors.UncorrectedParams):

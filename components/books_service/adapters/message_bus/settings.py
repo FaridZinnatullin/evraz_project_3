@@ -9,4 +9,3 @@ class Settings(BaseSettings):
                       f'{os.getenv("RABBITMQ_PASSWORD", "password")}@' \
                       f'{os.getenv("RABBITMQ_HOST", "127.0.0.1")}:' \
                       f'{os.getenv("RABBITMQ_PORT", "5672")}'
-

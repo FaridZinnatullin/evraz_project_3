@@ -84,19 +84,18 @@ def test__delete_by_id(book_repo, fill_book_db):
 
 
 def test__get_by_name_author(book_repo, fill_book_db):
-    book = book_repo.get_by_name_author(author=test_book_1['authors'],
-                                        name=test_book_1['title'])
+    book = book_repo.get_by_name_author(
+        author=test_book_1['authors'], name=test_book_1['title']
+    )
 
     assert asdict(book) == test_book_1
 
 
 def test__get_books_with_filters(book_repo, fill_book_db):
-    filtering_params = {
-        'keyword': ['Python'],
-        'publisher': ['Self-publishing']
-    }
-    books = book_repo.get_books_with_filters(params=filtering_params,
-                                             sorting_key='price')
+    filtering_params = {'keyword': ['Python'], 'publisher': ['Self-publishing']}
+    books = book_repo.get_books_with_filters(
+        params=filtering_params, sorting_key='price'
+    )
 
     assert books[0] == test_book_1['id']
 
@@ -107,6 +106,7 @@ def test__get_top_by_tag(book_repo, fill_book_db):
     books = book_repo.get_top_by_tag(tag, batch_datetime)
 
     assert asdict(books[0]) == test_book_1
+
 
 def test__add_instance(book_repo, mapping):
     book_data = Book(**test_book_1)

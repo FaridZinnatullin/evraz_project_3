@@ -19,7 +19,8 @@ def book():
         publisher='Self-publishing',
         year=2018,
         pages=89,
-        desc='Puzzle-based learning is an active learning technique. With code puzzles, you will learn faster, smarter, and better.Coffee Break Python Slicing is all about growing your Python expertise - one coffee at a time. The focus lies on the important slicing technique to access consecutive data ranges. Und...',
+        desc=
+        'Puzzle-based learning is an active learning technique. With code puzzles, you will learn faster, smarter, and better.Coffee Break Python Slicing is all about growing your Python expertise - one coffee at a time. The focus lies on the important slicing technique to access consecutive data ranges. Und...',
         service_tag='python',
         batch_datetime='15.04.2022 17:59:44',
         redeemed=False,
@@ -108,7 +109,9 @@ def booking_service(booking, booking_1, booking_2):
     booking_service.get_all_users = Mock(return_value=None)
     booking_service.booking_book = Mock(return_value=None)
     booking_service.get_by_id = Mock(return_value=booking)
-    booking_service.get_all_users_booking = Mock(return_value=[booking, booking_1])
+    booking_service.get_all_users_booking = Mock(
+        return_value=[booking, booking_1]
+    )
     booking_service.delete_booking = Mock(return_value=None)
     booking_service.redeem_booking = Mock(return_value=None)
     booking_service.get_active_booking = Mock(return_value=booking)

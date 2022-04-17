@@ -33,5 +33,3 @@ class UserRepo(ABC):
     @abstractmethod
     def authorization(self, login: str, password: str):
         pass
-
-

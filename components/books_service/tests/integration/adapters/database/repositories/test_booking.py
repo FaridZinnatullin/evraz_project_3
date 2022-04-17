@@ -39,7 +39,10 @@ test_booking_3 = {
 
 @pytest.fixture(scope='function')
 def fill_booking_db(session):
-    session.execute(tables.booking.insert(), [test_booking_1, test_booking_2, test_booking_3])
+    session.execute(
+        tables.booking.insert(),
+        [test_booking_1, test_booking_2, test_booking_3]
+    )
 
 
 @pytest.fixture(scope='function')
@@ -72,13 +75,17 @@ def test__get_by_user_id(booking_repo, fill_booking_db):
 
 
 def test__check_book_available_true(booking_repo, fill_booking_db):
-    result_bool = booking_repo.check_book_available(book_id=test_booking_1['book_id'])
+    result_bool = booking_repo.check_book_available(
+        book_id=test_booking_1['book_id']
+    )
 
     assert result_bool
 
 
 def test__check_book_available_false(booking_repo, fill_booking_db):
-    result_bool = booking_repo.check_book_available(book_id=test_booking_2['book_id'])
+    result_bool = booking_repo.check_book_available(
+        book_id=test_booking_2['book_id']
+    )
 
     assert not result_bool
 
@@ -86,10 +93,12 @@ def test__check_book_available_false(booking_repo, fill_booking_db):
 def test__get_all(booking_repo, fill_booking_db):
     bookings = booking_repo.get_all()
 
-    assert [asdict(booking) for booking in bookings] == [test_booking_1, test_booking_2, test_booking_3]
+    assert [asdict(booking) for booking in bookings
+            ] == [test_booking_1, test_booking_2, test_booking_3]
 
 
 def test__get_users_booking(booking_repo, fill_booking_db):
     bookings = booking_repo.get_users_booking(test_booking_1['user_id'])
 
-    assert [asdict(booking) for booking in bookings] == [test_booking_1, test_booking_2]
+    assert [asdict(booking)
+            for booking in bookings] == [test_booking_1, test_booking_2]

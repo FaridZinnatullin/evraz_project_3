@@ -41,7 +41,9 @@ class BookingManager:
         return booking
 
     @join_point
-    def set_booking_datetime_for_book(self, book_id: int, booking_datetime: datetime.datetime):
+    def set_booking_datetime_for_book(
+        self, book_id: int, booking_datetime: datetime.datetime
+    ):
         book = self.books_repo.get_by_id(book_id=book_id)
         book.booking_datetime = booking_datetime.strftime('%Y-%m-%d %H:%M:%S')
         self.books_repo.add_instance(book)
@@ -61,7 +63,8 @@ class BookingManager:
     @join_point
     def get_active_booking(self, user_id):
         booking = self.get_by_user_id(user_id=user_id)
-        if booking.redeemed or booking.expiry_datetime < datetime.datetime.now():
+        if booking.redeemed or booking.expiry_datetime < datetime.datetime.now(
+        ):
             raise errors.UserNoActiveBooking
         return booking
 
@@ -76,7 +79,8 @@ class BookingManager:
 
         if users_booking:
             # Если у него все еще есть активная бронь, кидаем ошибку
-            if users_booking.expiry_datetime > datetime.datetime.now() and not users_booking.redeemed:
+            if users_booking.expiry_datetime > datetime.datetime.now(
+            ) and not users_booking.redeemed:
                 raise errors.UserAlreadyHaveBooking
 
         # Достаем последнюю бронь по данной книге
@@ -99,20 +103,25 @@ class BookingManager:
             return True
 
     @join_point
-    def booking_book(self, book_id: int, user_id: int, period: Optional[int] = 7):
+    def booking_book(
+        self, book_id: int, user_id: int, period: Optional[int] = 7
+    ):
         if self.check_book_available(book_id=book_id, user_id=user_id):
             booking = Booking(
                 book_id=book_id,
                 user_id=user_id,
                 created_datetime=datetime.datetime.now(),
-                expiry_datetime=datetime.datetime.now() + datetime.timedelta(days=period)
+                expiry_datetime=datetime.datetime.now() +
+                datetime.timedelta(days=period)
             )
             self.booking_repo.add_instance(booking)
 
             # Ставим книге дату окончания бронирования:
-            self.set_booking_datetime_for_book(book_id=book_id,
-                                               booking_datetime=datetime.datetime.now() + datetime.timedelta(
-                                                   days=period))
+            self.set_booking_datetime_for_book(
+                book_id=book_id,
+                booking_datetime=datetime.datetime.now() +
+                datetime.timedelta(days=period)
+            )
 
     @join_point
     def delete_booking(self, booking_id: int, user_id: int):
@@ -121,7 +130,8 @@ class BookingManager:
             if booking is None:
                 raise errors.UncorrectedParams
 
-            if booking.expiry_datetime < datetime.datetime.now() or booking.redeemed:
+            if booking.expiry_datetime < datetime.datetime.now(
+            ) or booking.redeemed:
                 raise errors.BookingIsUnavailable
 
             booking.expiry_datetime = datetime.date(1800, 10, 10)
@@ -134,7 +144,8 @@ class BookingManager:
 
         booking = self.get_by_id(booking_id)
 
-        if booking.expiry_datetime < datetime.datetime.now() or booking.redeemed == True:
+        if booking.expiry_datetime < datetime.datetime.now(
+        ) or booking.redeemed == True:
             raise errors.BookingIsUnavailable
 
         booking.expiry_datetime = datetime.date(2800, 10, 10)
@@ -144,7 +155,6 @@ class BookingManager:
         self.make_book_redeemed(booking.book_id)
 
         self.booking_repo.add_instance(booking)
-
 
     @join_point
     def get_all_users_booking(self, user_id: int):
@@ -159,7 +169,9 @@ class BooksUpdaterManager:
     SERVICE_BOOK_URL = 'https://api.itbook.store/1.0/books/'
 
     @join_point
-    def create_and_get(self, book_id: str, service_tag: str, batch_datetime: str):
+    def create_and_get(
+        self, book_id: str, service_tag: str, batch_datetime: str
+    ):
         response = requests.get(f'{self.SERVICE_BOOK_URL}{book_id}')
         if response.status_code == 404:
             raise errors.DownloadError
@@ -189,17 +201,21 @@ class BooksUpdaterManager:
     def send_top_books(self, tags: list, batch_datetime: str):
         top_books = {}
         for tag in tags:
-            top_books[tag] = self.books_repo.get_top_by_tag(tag=tag, batch_datetime=batch_datetime)
-            top_books[tag] = [{'title': book.title,
-                               'authors': book.authors,
-                               'rating': book.rating,
-                               'year': book.year,
-                               'price': book.price
-                               }
-                              for book in top_books[tag]]
+            top_books[tag] = self.books_repo.get_top_by_tag(
+                tag=tag, batch_datetime=batch_datetime
+            )
+            top_books[tag] = [
+                {
+                    'title': book.title,
+                    'authors': book.authors,
+                    'rating': book.rating,
+                    'year': book.year,
+                    'price': book.price
+                } for book in top_books[tag]
+            ]
         if top_books:
             self.publisher.publish(
-                Message('TopBooksExchange', {'top_books': top_books}),
+                Message('UserRegistrationExchange', {'top_books': top_books}),
             )
 
     @join_point
@@ -217,13 +233,18 @@ class BooksUpdaterManager:
 
             # Постраничный проход
             for page_num in range(1, pages_count + 1):
-                response = requests.get(f'{self.SERVICE_SEARCH_URL}{book_tag}/{page_num}')
+                response = requests.get(
+                    f'{self.SERVICE_SEARCH_URL}{book_tag}/{page_num}'
+                )
                 response = response.json()
 
                 # Для каждой книги создаем dataclass
                 for book in response.get('books'):
-                    book_info = self.create_and_get(book.get('isbn13'), service_tag=book_tag,
-                                                    batch_datetime=batch_datetime)
+                    book_info = self.create_and_get(
+                        book.get('isbn13'),
+                        service_tag=book_tag,
+                        batch_datetime=batch_datetime
+                    )
                     total_books[book_tag].append(book_info)
 
         for key, value in total_books.items():
@@ -233,13 +254,18 @@ class BooksUpdaterManager:
 
     @join_point
     def get_by_pages(self, page_num, book_tag, batch_datetime):
-        response = requests.get(f'{self.SERVICE_SEARCH_URL}{book_tag}/{page_num}')
+        response = requests.get(
+            f'{self.SERVICE_SEARCH_URL}{book_tag}/{page_num}'
+        )
         response = response.json()
         total_books = []
         # Для каждой книги создаем dataclass
         for book in response.get('books'):
-            book_info = self.create_and_get(book.get('isbn13'), service_tag=book_tag,
-                                            batch_datetime=batch_datetime)
+            book_info = self.create_and_get(
+                book.get('isbn13'),
+                service_tag=book_tag,
+                batch_datetime=batch_datetime
+            )
             total_books.append(book_info)
 
         self.books_repo.add_instance_package(total_books)
@@ -261,7 +287,14 @@ class BooksUpdaterManager:
 
             # Постраничный проход
             for page_num in range(1, pages_count + 1):
-                thread = threading.Thread(target=self.get_by_pages, args=(page_num, book_tag, batch_datetime,))
+                thread = threading.Thread(
+                    target=self.get_by_pages,
+                    args=(
+                        page_num,
+                        book_tag,
+                        batch_datetime,
+                    )
+                )
                 thread.start()
                 threads.append(thread)
 
@@ -307,9 +340,14 @@ class BooksManager:
         if filter_publisher is not None:
             types.append('publisher')
 
-        filters_params = filter(None, [filter_price, filter_keyword, filter_authors, filter_publisher])
+        filters_params = filter(
+            None,
+            [filter_price, filter_keyword, filter_authors, filter_publisher]
+        )
 
-        return self.books_repo.get_books_with_filters(dict(zip(types, filters_params)), sorting_key)
+        return self.books_repo.get_books_with_filters(
+            dict(zip(types, filters_params)), sorting_key
+        )
 
     @join_point
     def get_all_books(self):
@@ -326,6 +364,10 @@ class BooksManager:
         batch_datetime = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
 
         self.publisher.publish(
-            Message('BookTagsExchange', {'book_tags': tags,
-                                         'batch_datetime': batch_datetime}),
+            Message(
+                'BookTagsExchange', {
+                    'book_tags': tags,
+                    'batch_datetime': batch_datetime
+                }
+            ),
         )

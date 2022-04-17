@@ -54,7 +54,6 @@ class Application:
     )
 
 
-
 class Aspects:
     services.join_points.join(DB.context)
     books_api.join_points.join(MessageBus.publisher, DB.context)
@@ -65,4 +64,3 @@ app = books_api.create_app(
     books_updater=Application.books_updater,
     booking_manager=Application.booking_manager
 )
-

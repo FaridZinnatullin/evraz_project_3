@@ -6,32 +6,21 @@ from falcon import testing
 from components.users_service.adapters import users_api
 from components.users_service.application import services, dataclasses
 
+
 @pytest.fixture(scope='function')
 def user():
-    return dataclasses.User(
-        id=1,
-        name='user1',
-        login=None,
-        password=None
-    )
+    return dataclasses.User(id=1, name='user1', login=None, password=None)
 
 
 @pytest.fixture(scope='function')
 def user_1():
-    return dataclasses.User(
-        id=2,
-        name='user2',
-        login=None,
-        password=None
-    )
+    return dataclasses.User(id=2, name='user2', login=None, password=None)
+
 
 @pytest.fixture(scope='function')
 def user_2():
     return dataclasses.User(
-        id=1,
-        name='user1',
-        login='user1',
-        password='password1'
+        id=1, name='user1', login='user1', password='password1'
     )
 
 
@@ -69,8 +58,6 @@ def users_service(user, user_1, user_2):
 
 @pytest.fixture(scope='function')
 def client(users_service):
-    app = users_api.create_app(
-        users_manager=users_service,
-    )
+    app = users_api.create_app(users_manager=users_service, )
 
     return testing.TestClient(app)

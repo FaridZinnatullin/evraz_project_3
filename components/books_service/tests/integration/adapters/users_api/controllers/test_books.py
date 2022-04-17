@@ -35,13 +35,14 @@ test_book_2 = {
     'booking_datetime': '25.04.2022 17:59:44'
 }
 
-
 # Актуальная бронь на неделю
 test_booking_1 = {
     'user_id': 1,
     'book_id': 1,
-    'created_datetime': datetime.datetime(2022, 4, 10, 14, 56, 40, 902733).strftime('%Y-%m-%d %H:%M:%S'),
-    'expiry_datetime': datetime.datetime(2022, 4, 20, 14, 56, 40, 902733).strftime('%Y-%m-%d %H:%M:%S'),
+    'created_datetime': datetime.datetime(2022, 4, 10, 14, 56, 40,
+                                          902733).strftime('%Y-%m-%d %H:%M:%S'),
+    'expiry_datetime': datetime.datetime(2022, 4, 20, 14, 56, 40,
+                                         902733).strftime('%Y-%m-%d %H:%M:%S'),
     'redeemed': False,
     'id': 1,
 }
@@ -50,8 +51,10 @@ test_booking_1 = {
 test_booking_2 = {
     'user_id': 1,
     'book_id': 2,
-    'created_datetime': datetime.datetime(2022, 4, 10, 14, 56, 40, 902733).strftime('%Y-%m-%d %H:%M:%S'),
-    'expiry_datetime': datetime.datetime(2022, 4, 14, 12, 35, 17, 506412).strftime('%Y-%m-%d %H:%M:%S'),
+    'created_datetime': datetime.datetime(2022, 4, 10, 14, 56, 40,
+                                          902733).strftime('%Y-%m-%d %H:%M:%S'),
+    'expiry_datetime': datetime.datetime(2022, 4, 14, 12, 35, 17,
+                                         506412).strftime('%Y-%m-%d %H:%M:%S'),
     'redeemed': False,
     'id': 2,
 }
@@ -59,8 +62,10 @@ test_booking_2 = {
 test_booking_3 = {
     'user_id': 2,
     'book_id': 2,
-    'created_datetime': datetime.datetime(2022, 4, 10, 14, 56, 40, 902733).strftime('%Y-%m-%d %H:%M:%S'),
-    'expiry_datetime': datetime.datetime(2022, 4, 14, 12, 35, 17, 506412).strftime('%Y-%m-%d %H:%M:%S'),
+    'created_datetime': datetime.datetime(2022, 4, 10, 14, 56, 40,
+                                          902733).strftime('%Y-%m-%d %H:%M:%S'),
+    'expiry_datetime': datetime.datetime(2022, 4, 14, 12, 35, 17,
+                                         506412).strftime('%Y-%m-%d %H:%M:%S'),
     'redeemed': False,
     'id': 3,
 }
@@ -69,14 +74,14 @@ test_booking_3 = {
 def test__on_get_book_info(client, books_service):
     book_id = 1001605784161
 
-    params = {
-        'book_id': book_id
-    }
+    params = {'book_id': book_id}
     headers = {
         'Authorization': 'Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOjEsImxvZ2luIjoidGVzdGluZ191c2VyXzEiLCJuYW1lIjoidGVzdGluZ19uYW1lXzEiLCJncm91cCI6IlVzZXIifQ.AzYtPz4F16sUu1ALSIzPUJeQM2AiZqfA-IpHcy-vNMI'
     }
 
-    result = client.simulate_get(f'/api/books/book_info', params=params, headers=headers)
+    result = client.simulate_get(
+        f'/api/books/book_info', params=params, headers=headers
+    )
 
     assert result.status_code == 200
     assert result.json == test_book_1
@@ -98,11 +103,10 @@ def test__on_get_with_filters(client, books_service):
         'Authorization': 'Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOjEsImxvZ2luIjoidGVzdGluZ191c2VyXzEiLCJuYW1lIjoidGVzdGluZ19uYW1lXzEiLCJncm91cCI6IlVzZXIifQ.AzYtPz4F16sUu1ALSIzPUJeQM2AiZqfA-IpHcy-vNMI'
     }
 
-    params = {
-        'authors': 'James Chambers',
-        'price': 'lt:10'
-    }
-    result = client.simulate_get(f'/api/books/with_filters', params=params, headers=headers)
+    params = {'authors': 'James Chambers', 'price': 'lt:10'}
+    result = client.simulate_get(
+        f'/api/books/with_filters', params=params, headers=headers
+    )
     assert result.status_code == 200
     assert result.json == [test_book_2]
 
@@ -112,13 +116,12 @@ def test__on_post_create_booking(client, books_service):
         'Authorization': 'Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOjEsImxvZ2luIjoidGVzdGluZ191c2VyXzEiLCJuYW1lIjoidGVzdGluZ19uYW1lXzEiLCJncm91cCI6IlVzZXIifQ.AzYtPz4F16sUu1ALSIzPUJeQM2AiZqfA-IpHcy-vNMI'
     }
 
-    params = {
-        'book_id': 9781118678640,
-        'user_id': 1,
-        'period': 4
-    }
-    result = client.simulate_post(f'/api/books/create_booking', body=json.dumps(params), headers=headers)
+    params = {'book_id': 9781118678640, 'user_id': 1, 'period': 4}
+    result = client.simulate_post(
+        f'/api/books/create_booking', body=json.dumps(params), headers=headers
+    )
     assert result.status_code == 200
+
 
 def test__on_get_booking_info(client, books_service):
     headers = {
@@ -129,45 +132,53 @@ def test__on_get_booking_info(client, books_service):
         'booking_id': 1,
     }
 
-    result = client.simulate_get(f'/api/books/booking_info', params=params, headers=headers)
+    result = client.simulate_get(
+        f'/api/books/booking_info', params=params, headers=headers
+    )
     assert result.status_code == 200
     assert result.json == test_booking_1
+
 
 def test__on_get_show_all_booking(client, books_service):
     headers = {
         'Authorization': 'Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOjEsImxvZ2luIjoidGVzdGluZ191c2VyXzEiLCJuYW1lIjoidGVzdGluZ19uYW1lXzEiLCJncm91cCI6IlVzZXIifQ.AzYtPz4F16sUu1ALSIzPUJeQM2AiZqfA-IpHcy-vNMI'
     }
 
-    result = client.simulate_get(f'/api/books/show_all_booking', headers=headers)
+    result = client.simulate_get(
+        f'/api/books/show_all_booking', headers=headers
+    )
 
     assert result.status_code == 200
     assert result.json == [test_booking_1, test_booking_2]
+
 
 def test__on_post_delete_booking(client, books_service):
     headers = {
         'Authorization': 'Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOjEsImxvZ2luIjoidGVzdGluZ191c2VyXzEiLCJuYW1lIjoidGVzdGluZ19uYW1lXzEiLCJncm91cCI6IlVzZXIifQ.AzYtPz4F16sUu1ALSIzPUJeQM2AiZqfA-IpHcy-vNMI'
     }
 
-    params = {
-        'book_id': 1001605784161
-    }
+    params = {'book_id': 1001605784161}
 
-    result = client.simulate_post(f'/api/books/delete_booking', body=json.dumps(params), headers=headers)
+    result = client.simulate_post(
+        f'/api/books/delete_booking', body=json.dumps(params), headers=headers
+    )
 
     assert result.status_code == 200
+
 
 def test__on_post_redeem_booking(client, books_service):
     headers = {
         'Authorization': 'Bearer eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJzdWIiOjEsImxvZ2luIjoidGVzdGluZ191c2VyXzEiLCJuYW1lIjoidGVzdGluZ19uYW1lXzEiLCJncm91cCI6IlVzZXIifQ.AzYtPz4F16sUu1ALSIzPUJeQM2AiZqfA-IpHcy-vNMI'
     }
 
-    params = {
-        'book_id': 1001605784161
-    }
+    params = {'book_id': 1001605784161}
 
-    result = client.simulate_post(f'/api/books/delete_booking', body=json.dumps(params), headers=headers)
+    result = client.simulate_post(
+        f'/api/books/delete_booking', body=json.dumps(params), headers=headers
+    )
 
     assert result.status_code == 200
+
 
 def test__on_get_active_booking(client, books_service):
     headers = {

@@ -19,15 +19,18 @@ class BookingRepo(BaseRepository, interfaces.BookingRepo):
         return self.session.execute(query).scalars().one_or_none()
 
     def get_by_book_id(self, book_id: int):
-        query = select(Booking).where(Booking.book_id == book_id).order_by(desc(Booking.id)).limit(1)
+        query = select(Booking).where(Booking.book_id == book_id
+                                      ).order_by(desc(Booking.id)).limit(1)
         return self.session.execute(query).scalars().one_or_none()
 
     def get_by_user_id(self, user_id: int):
-        query = select(Booking).where(Booking.user_id == user_id).order_by(desc(Booking.id)).limit(1)
+        query = select(Booking).where(Booking.user_id == user_id
+                                      ).order_by(desc(Booking.id)).limit(1)
         return self.session.execute(query).scalars().one_or_none()
 
     def check_book_available(self, book_id: int):
-        if self.get_by_book_id(book_id).expiry_datetime > datetime.datetime.now():
+        if self.get_by_book_id(book_id
+                               ).expiry_datetime > datetime.datetime.now():
             return True
 
     def add_instance(self, instance: Booking):
@@ -62,7 +65,8 @@ class BookRepo(BaseRepository, interfaces.BookRepo):
 
     def add_instance_package(self, instances_package: list):
         for instance in instances_package:
-            if not self.session.query(Book).filter(Book.id == instance.id).one_or_none():
+            if not self.session.query(Book).filter(Book.id == instance.id
+                                                   ).one_or_none():
                 self.session.add(instance)
         self.session.flush()
 
@@ -71,7 +75,9 @@ class BookRepo(BaseRepository, interfaces.BookRepo):
         self.session.delete(book)
 
     def get_by_name_author(self, author: str, name: str):
-        query = select(Book).where(and_(Book.title == name, Book.authors == author))
+        query = select(Book).where(
+            and_(Book.title == name, Book.authors == author)
+        )
         return self.session.execute(query).scalars().first()
 
     def get_books_with_filters(self, params: dict, sorting_key):
@@ -88,20 +94,28 @@ class BookRepo(BaseRepository, interfaces.BookRepo):
 
     def get_filter(self, params: dict, query):
         if 'keyword' in params:
-            query = self.get_filter_by_keyword(keyword=params.get('keyword'), query=query)
+            query = self.get_filter_by_keyword(
+                keyword=params.get('keyword'), query=query
+            )
         if 'authors' in params:
-            query = self.get_filter_by_authors(authors=params.get('authors'), query=query)
+            query = self.get_filter_by_authors(
+                authors=params.get('authors'), query=query
+            )
         if 'price' in params:
             price = params.get('price')
             # На случай, если есть верхняя и нижняя граница цен
             if isinstance(price[0], List):
                 for price_border in price:
-                    query = self.get_filter_by_price(price_pair=price_border, query=query)
+                    query = self.get_filter_by_price(
+                        price_pair=price_border, query=query
+                    )
             else:
                 query = self.get_filter_by_price(price_pair=price, query=query)
 
         if 'publisher' in params:
-            query = self.get_filter_by_publisher(publisher=params.get('publisher'), query=query)
+            query = self.get_filter_by_publisher(
+                publisher=params.get('publisher'), query=query
+            )
 
         return query
 
@@ -141,6 +155,9 @@ class BookRepo(BaseRepository, interfaces.BookRepo):
         return query.filter(Book.publisher.like(f'%{publisher}%'))
 
     def get_top_by_tag(self, tag: str, batch_datetime: str):
-        query = select(Book).where(and_(Book.service_tag == tag, Book.batch_datetime == batch_datetime)).order_by(
-            desc(Book.rating), asc(Book.year)).limit(3)
+        query = select(Book).where(
+            and_(
+                Book.service_tag == tag, Book.batch_datetime == batch_datetime
+            )
+        ).order_by(desc(Book.rating), asc(Book.year)).limit(3)
         return self.session.execute(query).scalars().all()

@@ -43,6 +43,4 @@ class Aspects:
     users_api.join_points.join(MessageBus.publisher, DB.context)
 
 
-app = users_api.create_app(
-    users_manager=Application.users_manager,
-)
+app = users_api.create_app(users_manager=Application.users_manager, )

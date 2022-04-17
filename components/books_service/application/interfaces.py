@@ -22,8 +22,6 @@ class BookRepo(ABC):
     def delete_by_id(self, book_id: int):
         pass
 
-
-
     @abstractmethod
     def get_by_name_author(self, author: str, name: str):
         pass

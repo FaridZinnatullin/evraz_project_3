@@ -14,7 +14,6 @@ from .join_points import join_point
 class Users:
     users_manager: services.UsersManager
 
-
     @join_point
     @authenticate
     def on_get_user_info(self, request, response):
@@ -27,10 +26,10 @@ class Users:
         }
         response.media = result
 
-
     @join_point
     def on_post_registration(self, request, response):
         self.users_manager.registration(**request.media)
+
 
     @join_point
     def on_post_login(self, request, response):
@@ -48,6 +47,4 @@ class Users:
             algorithm="HS256"
         )
 
-        response.media = {
-            "token": token
-        }
+        response.media = {"token": token}

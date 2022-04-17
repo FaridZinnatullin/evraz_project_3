@@ -52,7 +52,8 @@ class Books:
                 'batch_datetime': book.batch_datetime,
                 'redeemed': book.redeemed,
                 'booking_datetime': book.booking_datetime
-            } for book in books]
+            } for book in books
+        ]
 
     @join_point
     def on_get_with_filters(self, request, response):
@@ -91,8 +92,10 @@ class Books:
             'id': booking.id,
             'book_id': booking.book_id,
             'user_id': booking.user_id,
-            'created_datetime': booking.created_datetime.strftime('%Y-%m-%d %H:%M:%S'),
-            'expiry_datetime': booking.expiry_datetime.strftime('%Y-%m-%d %H:%M:%S'),
+            'created_datetime': booking.created_datetime.
+            strftime('%Y-%m-%d %H:%M:%S'),
+            'expiry_datetime': booking.expiry_datetime.
+            strftime('%Y-%m-%d %H:%M:%S'),
             'redeemed': booking.redeemed
         }
 
@@ -101,14 +104,18 @@ class Books:
     def on_get_show_all_booking(self, request, response):
         request.params['user_id'] = request.context.client.user_id
         bookings = self.booking_manager.get_all_users_booking(**request.params)
-        response.media = [{
-            'id': booking.id,
-            'book_id': booking.book_id,
-            'user_id': booking.user_id,
-            'created_datetime': booking.created_datetime.strftime('%Y-%m-%d %H:%M:%S'),
-            'expiry_datetime': booking.expiry_datetime.strftime('%Y-%m-%d %H:%M:%S'),
-            'redeemed': booking.redeemed
-        } for booking in bookings]
+        response.media = [
+            {
+                'id': booking.id,
+                'book_id': booking.book_id,
+                'user_id': booking.user_id,
+                'created_datetime': booking.created_datetime.
+                strftime('%Y-%m-%d %H:%M:%S'),
+                'expiry_datetime': booking.expiry_datetime.
+                strftime('%Y-%m-%d %H:%M:%S'),
+                'redeemed': booking.redeemed
+            } for booking in bookings
+        ]
 
     @join_point
     @authenticate
@@ -131,7 +138,9 @@ class Books:
             'id': booking.id,
             'book_id': booking.book_id,
             'user_id': booking.user_id,
-            'created_datetime': booking.created_datetime.strftime('%Y-%m-%d %H:%M:%S'),
-            'expiry_datetime': booking.expiry_datetime.strftime('%Y-%m-%d %H:%M:%S'),
+            'created_datetime': booking.created_datetime.
+            strftime('%Y-%m-%d %H:%M:%S'),
+            'expiry_datetime': booking.expiry_datetime.
+            strftime('%Y-%m-%d %H:%M:%S'),
             'redeemed': booking.redeemed
         }
