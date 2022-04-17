@@ -1,10 +1,9 @@
 import pytest
 from attr import asdict
-from sqlalchemy.orm import registry
-
 from components.books_service.adapters.database import tables
 from components.books_service.adapters.database.repositories import BookRepo
 from components.books_service.application.dataclasses import Book
+from sqlalchemy.orm import registry
 
 test_book_1 = {
     'id': 1001605784161,

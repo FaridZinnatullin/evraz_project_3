@@ -1,8 +1,7 @@
 import pytest
 from attr import asdict
-from pydantic import ValidationError
-
 from components.books_service.application import errors, services
+from pydantic import ValidationError
 
 
 @pytest.fixture(scope='function')

@@ -2,9 +2,9 @@ import datetime
 from unittest.mock import Mock
 
 import pytest
-from evraz.classic.messaging import Publisher
-
 from components.books_service.application import dataclasses, interfaces
+
+from evraz.classic.messaging import Publisher
 
 
 @pytest.fixture(scope='function')

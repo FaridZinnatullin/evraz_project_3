@@ -1,0 +1,43 @@
+@startuml
+
+header Демо проект
+title Диаграмма прецедентов
+
+left to right direction
+
+rectangle "Оформление заказа" {
+  usecase "Посмотреть корзину" as show_cart
+  usecase "Добавить товар в корзину" as add_to_cart
+  usecase "Удалить товар из корзины" as remove_from_cart
+  usecase "Сделать заказ" as register_order
+}
+
+rectangle "Каталог" {
+  usecase "Посмотреть товар" as show_product
+  usecase "Найти товары по названию или описанию" as search_products
+}
+
+rectangle "Авторизированный пользователь" {
+  usecase "Посмотреть заказ" as show_order
+}
+
+rectangle "Сервис пользователей" {
+  usecase "Регистрация" as registration
+  usecase "Авторизация" as authorization
+  usecase "Посмотреть инфу о себе" as authorization
+}
+
+'actor "Покупатель" as сlient
+'сlient -- show_cart
+'сlient -- add_to_cart
+'сlient -- remove_from_cart
+'сlient -- register_order
+'сlient -- show_product
+'сlient -- search_products
+'сlient -- show_order
+'
+'
+'actor "Администратор" as admin
+'admin -- show_customer
+
+@enduml

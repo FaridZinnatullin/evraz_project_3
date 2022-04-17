@@ -2,11 +2,10 @@ import datetime
 
 import pytest
 from attr import asdict
-from sqlalchemy.orm import registry
-
 from components.books_service.adapters.database import tables
 from components.books_service.adapters.database.repositories import BookingRepo
 from components.books_service.application.dataclasses import Booking
+from sqlalchemy.orm import registry
 
 # Актуальная бронь на неделю
 test_booking_1 = {

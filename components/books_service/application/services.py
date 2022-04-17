@@ -3,10 +3,11 @@ import threading
 from typing import List, Optional
 
 import requests
+from pydantic import validate_arguments
+
 from evraz.classic.aspects import PointCut
 from evraz.classic.components import component
 from evraz.classic.messaging import Message, Publisher
-from pydantic import validate_arguments
 
 from . import errors, interfaces
 from .dataclasses import Book, Booking

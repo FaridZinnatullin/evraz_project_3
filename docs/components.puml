@@ -1,0 +1,70 @@
+@startuml
+
+header Evraz project 3
+title Диаграмма компонентов
+
+rectangle "Interfaces (Primary Adapters) (Users)" {
+  [Users API] as users_api
+}
+
+rectangle "Interfaces (Primary Adapters) (Books)" {
+  [Books API] as books_api
+  [Rabbitmq consumer] as rabbitmq_consumer_books
+}
+
+rectangle "Application (Users)" {
+  [Users] as users
+  interface "Users repositories" as users_repositories
+  interface "Users publisher" as users_publisher
+}
+
+rectangle "Application (Books)" {
+  [Books] as books
+  interface "Book repositories" as books_repositories
+  interface "Book publisher" as books_publisher
+}
+
+
+
+rectangle "Adapters (Secondary Adapters)" {
+  [Database] as database_users
+  [Publisher] as publisher_users
+}
+
+rectangle "Adapters (Secondary Adapters) (Books)" {
+  [Database] as database_books
+  [Publisher] as publisher_books
+}
+
+() "HTTP API" as http_api_users
+
+
+() "HTTP API" as http_api_books
+
+() "AMQP" as amqp_books
+
+users_api -u-( http_api_users
+
+books_api -u-( http_api_books
+
+rabbitmq_consumer_books -u-( amqp_books
+
+users_api ..> users
+
+books_api ..> books
+
+rabbitmq_consumer_books ..> books
+
+users --( users_repositories
+users --( users_publisher
+
+books --( books_repositories
+books --( books_publisher
+
+
+publisher_users -u- users_publisher
+database_users -u- users_repositories
+
+publisher_books -u- books_publisher
+database_books -u- books_repositories
+@enduml

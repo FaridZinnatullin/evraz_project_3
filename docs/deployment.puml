@@ -1,0 +1,92 @@
+'@startuml
+'
+'header Демо проект
+'title Диаграмма развертывания
+'
+'rectangle "Корпоративная сеть" {
+'  actor User
+'  actor System
+'
+'  rectangle "СУБД приложения" {
+'    node "Demo project DBMS" {
+'      [MS SQL] as demo_project_db
+'
+'      note bottom of demo_project_db {
+'        Отдельная база данных
+'        на каждое окружение
+'      }
+'    }
+'  }
+'
+'  node "OpenShift Namespace" as OSN {
+'    [Ingress]
+'    component UIendServer [
+'      UIend Service
+'      Nginx
+'    ]
+'    note bottom of UIendServer {
+'      Раздает статику
+'    }
+'
+'    component RabbitMQ [
+'        RabbitMQ instance
+'    ]
+'
+'    rectangle "Контейнеры" {
+'      rectangle "HTTP API" {
+'        component HTTP_API [
+'          HTTP API Service
+'          Gunicorn
+'        ]
+'
+'        component EventProducer [
+'          Event Producer
+'          Python app
+'        ]
+'
+'        note top of EventProducer {
+'          Посылает событие о создании заказа
+'        }
+'      }
+'      rectangle "Consumers" {
+'        component EventConsumer [
+'          Event Consumer
+'          Python app
+'        ]
+'
+'        note top of EventConsumer {
+'          Отправляет оповещение при событии создания заказа
+'        }
+'      }
+'    }
+'
+'    rectangle "Initial контейнер" {
+'      component Migrations [
+'        Migrations Service
+'        Alembic
+'      ]
+'    }
+'
+'    note top of Migrations {
+'      Запускается перед запуском остальных сервисов
+'      **команда:  demo_project alembic upgrade head**
+'    }
+'
+'    Ingress -- UIendServer : HTTP
+'    Ingress -- HTTP_API : HTTP
+'
+'    HTTP_API -- demo_project_db : TDS
+'
+'    EventConsumer - demo_project_db : TDS
+'    EventConsumer - RabbitMQ : AMPQ
+'    EventProducer - RabbitMQ: AMPQ
+'  }
+'  note top of OSN {
+'    Namespace создается под окружение.
+'  }
+'}
+'
+'User -- Ingress : HTTPS
+'System -- Migrations : CLI
+'
+'@enduml

@@ -1,10 +1,10 @@
 import os
 
 import pytest
-from evraz.classic.sql_storage import TransactionContext
+from components.books_service.adapters.database.tables import metadata
 from sqlalchemy import create_engine
 
-from components.books_service.adapters.database.tables import metadata
+from evraz.classic.sql_storage import TransactionContext
 
 
 @pytest.fixture(scope='session')

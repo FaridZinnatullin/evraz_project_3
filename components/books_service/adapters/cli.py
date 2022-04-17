@@ -1,4 +1,5 @@
 import click
+
 from composites.api import Application as app
 
 

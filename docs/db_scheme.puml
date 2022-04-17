@@ -1,0 +1,64 @@
+@startuml
+
+header Evraz project 3
+title Схема БД
+
+hide circle
+skinparam linetype ortho
+
+
+entity users {
+  * **id**  :  int
+  __
+  * **name**  :  varchar
+  __
+  * **login**  :  varchar
+  __
+  * **password**  :  varchar
+}
+
+
+entity books {
+  * **id**  :  int
+  __
+  * **title**  :  varchar
+  --
+  * **subtitle**  :  varchar
+  --
+  * **price**  :  float
+  --
+  * **rating**  :  int
+  --
+  * **authors**  :  varchar
+  --
+  * **year**  :  int
+  --
+  * **pages**  :  int
+  --
+  * **desc**  :  varchar
+  --
+  * **service_tag**  :  varchar
+  --
+  * **batch_datetime**  :  varchar
+  --
+  * **redeemed**  :  bool
+  --
+  * **booking_datetime**  :  varchar
+}
+
+entity bookings {
+  * **id**  :  int
+  __
+  * **user_id**  :  int
+  --
+  * **book_id**  :  int
+  --
+  * **created_datetime**  :  datetime
+  --
+  * **expiry_datetime**  :  datetime
+  --
+  * **redeemed**  :  bool
+}
+
+
+@enduml

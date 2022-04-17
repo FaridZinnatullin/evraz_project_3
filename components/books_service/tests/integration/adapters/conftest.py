@@ -2,10 +2,9 @@ import datetime
 from unittest.mock import Mock
 
 import pytest
-from falcon import testing
-
 from components.books_service.adapters import books_api
-from components.books_service.application import services, dataclasses
+from components.books_service.application import dataclasses, services
+from falcon import testing
 
 
 @pytest.fixture(scope='function')

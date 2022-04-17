@@ -1,5 +1,6 @@
-import json
 import datetime
+import json
+
 test_book_1 = {
     'id': 1001605784161,
     'title': 'Coffee Break Python Slicing',
