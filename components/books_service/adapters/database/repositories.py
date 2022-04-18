@@ -1,11 +1,10 @@
 import datetime
 from typing import List, Union
 
-from sqlalchemy import asc, desc
-from sqlalchemy.sql import and_, select
-
 from evraz.classic.components import component
 from evraz.classic.sql_storage import BaseRepository
+from sqlalchemy import asc, desc
+from sqlalchemy.sql import and_, select
 
 from application import interfaces
 from application.dataclasses import Book, Booking
@@ -97,20 +96,15 @@ class BookRepo(BaseRepository, interfaces.BookRepo):
             query = self.get_filter_by_keyword(
                 keyword=params.get('keyword'), query=query
             )
+
         if 'authors' in params:
             query = self.get_filter_by_authors(
                 authors=params.get('authors'), query=query
             )
+
         if 'price' in params:
             price = params.get('price')
-            # На случай, если есть верхняя и нижняя граница цен
-            if isinstance(price[0], List):
-                for price_border in price:
-                    query = self.get_filter_by_price(
-                        price_pair=price_border, query=query
-                    )
-            else:
-                query = self.get_filter_by_price(price_pair=price, query=query)
+            query = self.get_filter_by_price(price_pairs=price, query=query)
 
         if 'publisher' in params:
             query = self.get_filter_by_publisher(
@@ -119,28 +113,31 @@ class BookRepo(BaseRepository, interfaces.BookRepo):
 
         return query
 
-    def get_filter_by_price(self, price_pair: list, query):
-        operation, value = price_pair[0], price_pair[1]
-        results = {
-            'gt': query.filter(Book.price > value),
-            'lt': query.filter(Book.price < value),
-            'gte': query.filter(Book.price >= value),
-            'lte': query.filter(Book.price <= value),
-            'eq': query.filter(Book.price == value)
-        }
+    def get_filter_by_price(self, price_pairs: list, query):
 
-        return results[operation]
+        if not isinstance(price_pairs[0], list):
+            price_pairs = [price_pairs]
 
-    def get_filter_by_keyword(self, keyword: Union[str, List], query):
+        for price_pair in price_pairs:
+            operation, value = price_pair[0], price_pair[1]
+            results = {
+                'gt': query.filter(Book.price > value),
+                'lt': query.filter(Book.price < value),
+                'gte': query.filter(Book.price >= value),
+                'lte': query.filter(Book.price <= value),
+                'eq': query.filter(Book.price == value)
+            }
+            query = results[operation]
+
+        return query
+
+    def get_filter_by_keyword(self, keyword: str, query):
         if isinstance(keyword, List):
             keyword = ','.join(keyword)
         keyword = keyword.replace('_', ' ')
-
-        query_title = query.filter(Book.title.like(f'%{keyword}%'))
-        query_subtitle = query.filter(Book.subtitle.like(f'%{keyword}%'))
-        query_description = query.filter(Book.desc.like(f'%{keyword}%'))
-
-        return query_title.union(query_subtitle).union(query_description)
+        query = query.filter(
+            (Book.title.like(f'%{keyword}%')) | (Book.subtitle.like(f'%{keyword}%')) | (Book.desc.like(f'%{keyword}%')))
+        return query
 
     def get_filter_by_authors(self, authors: Union[str, List], query):
         if isinstance(authors, List):

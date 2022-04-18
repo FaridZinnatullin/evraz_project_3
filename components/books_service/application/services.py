@@ -345,9 +345,12 @@ class BooksManager:
             [filter_price, filter_keyword, filter_authors, filter_publisher]
         )
 
-        return self.books_repo.get_books_with_filters(
+        result = self.books_repo.get_books_with_filters(
             dict(zip(types, filters_params)), sorting_key
         )
+        print(type(result))
+        print(result)
+        return result
 
     @join_point
     def get_all_books(self):
