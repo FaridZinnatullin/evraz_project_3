@@ -214,8 +214,9 @@ class BooksUpdaterManager:
                 } for book in top_books[tag]
             ]
         if top_books:
+            print(f'Вывод ТОПа книг: {top_books}')
             self.publisher.publish(
-                Message('UserRegistrationExchange', {'top_books': top_books}),
+                Message('TopBooksExchange', {'top_books': top_books}),
             )
 
     @join_point
